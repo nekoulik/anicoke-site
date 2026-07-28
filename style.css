@@ -86,7 +86,8 @@ button {
 
 a:focus-visible,
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+[tabindex]:focus-visible {
     outline: 2px solid var(--gold);
     outline-offset: 3px
 }
@@ -1491,7 +1492,7 @@ mark.m {
 .bento {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-auto-rows: 165px;
+    grid-auto-rows: minmax(165px, auto);
     gap: 18px
 }
 
