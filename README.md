@@ -2,7 +2,7 @@
 
 Лендинг аниме‑клуба во ВКонтакте + набор браузерных студий в едином визуальном коде.
 
-**Сайт:** [nekoulik.github.io/anicoke-site](https://nekoulik.github.io/anicoke-site)
+**Сайт:** [nekoulik.github.io/anicoke-site/](https://nekoulik.github.io/anicoke-site/)
 
 ## Что внутри
 - `index.html` / `style.css` / `script.js` — лендинг клуба (заставка, туториал, FAQ, маскот Юки на чистом SVG).
