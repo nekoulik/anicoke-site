@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Banner Forge — баннер чата для Club Anicoke</title>
+<meta name="theme-color" content="#150f24">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Golos+Text:wght@400;500;600;700&family=DotGothic16&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#150f24; --ink-2:#1e1633; --ink-3:#2a2044;
+  --line:rgba(255,255,255,.11);
+  --text:#f6f1fb; --muted:#b3a5ca;
+  --sakura:#ff9ec7; --hot:#ff4f6e; --gold:#ffc85c; --mint:#6fe3c1; --sky:#8ecbff;
+  --display:'Unbounded',sans-serif; --body:'Golos Text',sans-serif;
+  --jp:'DotGothic16',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--ink);color:var(--text);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-3;
+  background:
+    radial-gradient(720px 520px at 86% -10%, rgba(255,79,110,.18), transparent 60%),
+    radial-gradient(640px 480px at -10% 26%, rgba(111,227,193,.10), transparent 60%),
+    radial-gradient(700px 540px at 60% 112%, rgba(255,200,92,.08), transparent 60%),
+    var(--ink);}
+#bg{position:fixed;inset:0;z-index:-2;pointer-events:none}
+::selection{background:var(--hot);color:#fff}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--ink-3);border-radius:8px}
+
+.wrap{max-width:1260px;margin:0 auto;padding:0 24px;position:relative;z-index:2}
+
+/* ── шапка (асимметрия, не центрированный hero) ── */
+.forge-head{padding:52px 0 22px;display:grid;grid-template-columns:1.5fr .8fr;gap:30px;align-items:end}
+.fh-tag{font-family:var(--mono);color:var(--hot);letter-spacing:.16em;font-size:12.5px}
+.fh-tag .jp{font-family:var(--jp);color:var(--muted);margin-left:8px;letter-spacing:.3em}
+.fh-title{font-family:var(--display);font-weight:900;font-size:clamp(32px,6vw,64px);line-height:.9;
+  text-transform:uppercase;letter-spacing:-.012em;margin-top:10px}
+.fh-title em{font-style:normal;color:transparent;-webkit-text-stroke:2px var(--sakura)}
+.fh-sub{color:var(--muted);font-size:14.5px;margin-top:9px;max-width:460px}
+.fh-sub b{color:var(--text)}
+.fh-meta{justify-self:end;display:grid;gap:8px;text-align:right}
+.fh-pill{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.03);white-space:nowrap}
+.fh-pill b{color:var(--gold)}
+.fh-pill.ok{color:var(--mint);border-color:rgba(111,227,193,.35)}
+.fh-pill .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mint);
+  box-shadow:0 0 10px var(--mint);margin-right:7px;vertical-align:middle;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── раскладка ── */
+.forge{display:grid;grid-template-columns:332px 1fr;gap:34px;align-items:start;padding-bottom:96px}
+
+.panel{position:sticky;top:18px;background:linear-gradient(165deg,var(--ink-2),#170f28);
+  border:1px solid rgba(255,158,199,.28);border-radius:20px;padding:18px;
+  box-shadow:0 26px 60px rgba(0,0,0,.5);display:grid;gap:15px}
+.grp{display:grid;gap:9px}
+.cap{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.divider{height:1px;background:var(--line);margin:1px 0}
+
+.comps{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.comp{position:relative;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.03);
+  padding:8px;cursor:pointer;transition:.22s;display:grid;gap:6px;justify-items:center;text-align:center}
+.comp:hover{border-color:rgba(255,158,199,.4);transform:translateY(-2px)}
+.comp.on{border-color:var(--hot);background:linear-gradient(160deg,rgba(255,79,110,.2),rgba(255,158,199,.08));
+  box-shadow:0 8px 22px rgba(255,79,110,.26)}
+.comp canvas{width:62px;height:42px;border-radius:7px;display:block;background:#0e0a1c;box-shadow:0 0 0 1px rgba(255,255,255,.08)}
+.comp span{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.comp.on span{color:#fff}
+.comp small{font-family:var(--mono);font-size:8px;color:var(--muted);opacity:.8;margin-top:-3px}
+
+.moods{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.mood{aspect-ratio:1;border-radius:11px;border:2px solid transparent;cursor:pointer;position:relative;overflow:hidden;transition:.22s}
+.mood:hover{transform:translateY(-3px) scale(1.05)}
+.mood.on{border-color:#fff;box-shadow:0 0 0 2px var(--hot),0 8px 18px rgba(0,0,0,.4)}
+.mood.on::after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.mood i{position:absolute;left:0;right:0;bottom:3px;text-align:center;font-family:var(--mono);font-style:normal;
+  font-size:8px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+
+.accs{display:flex;gap:8px}
+.acc{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.2s}
+.acc:hover{transform:scale(1.12)}
+.acc.on{border-color:#fff;box-shadow:0 0 0 2px var(--hot)}
+
+.field{display:grid;gap:5px;transition:opacity .25s,max-height .3s;overflow:hidden;max-height:80px}
+.field.gone{opacity:0;max-height:0;pointer-events:none;margin:0}
+.field .cap{font-size:9.5px;letter-spacing:.12em}
+input[type=text]{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:9px 11px;font-family:var(--body);font-size:13px;outline:none;transition:.2s}
+input[type=text]:focus{border-color:var(--sakura);box-shadow:0 0 0 3px rgba(255,158,199,.16)}
+
+.tog{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px}
+.sw{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;font-size:12px}
+.sw input{display:none}
+.sw .box{width:34px;height:19px;border-radius:999px;background:var(--ink-3);position:relative;flex:none;transition:.25s;border:1px solid var(--line)}
+.sw .box::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--muted);transition:.25s}
+.sw input:checked+.box{background:linear-gradient(90deg,var(--hot),var(--sakura));border-color:transparent}
+.sw input:checked+.box::after{left:17px;background:#fff}
+
+.selrow{display:grid;gap:5px}
+select{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:9px 11px;font-family:var(--mono);font-size:12px;outline:none;cursor:pointer}
+select:focus{border-color:var(--sakura)}
+
+.dl{font-family:var(--display);font-weight:700;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;
+  border:0;border-radius:13px;padding:15px;background:var(--hot);color:#fff;cursor:pointer;transition:.2s;
+  box-shadow:0 10px 26px rgba(255,79,110,.4);display:flex;align-items:center;justify-content:center;gap:9px}
+.dl:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(255,79,110,.55)}
+.dl:active{transform:translateY(0)}
+.dl.busy{background:var(--ink-3);box-shadow:none;cursor:wait}
+.dl.done{background:var(--mint);color:#10332a;box-shadow:0 10px 26px rgba(111,227,193,.4)}
+.dl-row{display:grid;grid-template-columns:1fr auto;gap:8px}
+.ghost{font-family:var(--mono);font-size:13px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  border-radius:13px;padding:0 15px;cursor:pointer;transition:.25s}
+.ghost:hover{color:var(--text);border-color:var(--sakura);transform:rotate(90deg)}
+
+/* ── сцена ─ */
+.stage{display:grid;gap:22px}
+.preview-zone{display:grid;place-items:center}
+.preview-frame{position:relative;width:min(460px,88vw);aspect-ratio:376/256;border-radius:20px;overflow:hidden;
+  border:1px solid rgba(255,158,199,.32);background:#0e0a1c;box-shadow:0 34px 80px rgba(0,0,0,.6);
+  animation:float 7s ease-in-out infinite}
+.preview-frame.pop{animation:pop .42s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-.4deg)}}
+@keyframes pop{0%{transform:scale(.95)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+.preview-frame::before{content:"";position:absolute;inset:10px;border:1px solid rgba(255,255,255,.12);
+  border-radius:13px;pointer-events:none;z-index:6}
+.corner{position:absolute;width:18px;height:18px;z-index:7;border:2px solid var(--sakura);opacity:.85}
+.corner.tl{top:14px;left:14px;border-right:0;border-bottom:0}
+.corner.tr{top:14px;right:14px;border-left:0;border-bottom:0}
+.corner.bl{bottom:14px;left:14px;border-right:0;border-top:0}
+.corner.br{bottom:14px;right:14px;border-left:0;border-top:0}
+#art,#crop{position:absolute;inset:0;width:100%;height:100%;display:block}
+#crop{z-index:5}
+.crop-flag{position:absolute;top:13px;left:50%;transform:translateX(-50%);z-index:8;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--muted);
+  background:rgba(14,10,28,.72);border:1px solid var(--line);border-radius:999px;padding:5px 12px;
+  backdrop-filter:blur(6px);display:flex;align-items:center;gap:7px;cursor:pointer;user-select:none;transition:.2s}
+.crop-flag:hover{color:var(--text);border-color:var(--sakura)}
+.crop-flag .led{width:8px;height:8px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+.crop-flag.off .led{background:var(--muted);box-shadow:none}
+.preview-cap{margin-top:13px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em}
+.preview-cap b{color:var(--gold)}
+.preview-cap .live{color:var(--mint)}
+
+/* ── мокапы (асимметричная сетка, не равные карточки) ── */
+.mocks{display:grid;grid-template-columns:1.5fr 1fr;grid-template-rows:auto auto;gap:14px}
+.mock{border:1px solid var(--line);border-radius:16px;position:relative;overflow:hidden;transition:.25s}
+.mock:hover{transform:translateY(-4px);border-color:rgba(255,158,199,.4);box-shadow:0 18px 40px rgba(0,0,0,.4)}
+.mock .mk-tag{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--hot)}
+
+/* виджет чата ВК — светлая тема, как на скрине */
+.mock.widget{grid-row:1 / span 2;background:#fff;color:#222;padding:0}
+.w-head{padding:13px 15px 11px;border-bottom:1px solid #edeef0;display:flex;align-items:center;justify-content:space-between}
+.w-head .mk-tag{color:#939cb0}
+.w-x{width:22px;height:22px;border-radius:50%;background:#edeef0;color:#818c99;display:grid;place-items:center;font-size:13px;line-height:1}
+.w-banner{position:relative}
+.w-banner img{width:100%;display:block}
+.w-body{padding:13px 15px 15px;display:grid;gap:11px}
+.w-row{display:flex;align-items:center;gap:11px}
+.w-ico{width:38px;height:38px;border-radius:10px;background:#f0f2f5;display:grid;place-items:center;flex:none}
+.w-ico svg{width:20px;height:20px;fill:#818c99}
+.w-row .t b{display:block;font-size:14px;color:#222;font-family:var(--body);font-weight:600}
+.w-row .t span{font-size:11.5px;color:#818c99;font-family:var(--mono);word-break:break-all}
+.w-row .t .col{color:#4986cc;cursor:pointer}
+.w-open{border:0;background:#4986cc;color:#fff;border-radius:9px;padding:11px;font-family:var(--body);font-weight:600;
+  font-size:13.5px;cursor:pointer;transition:.2s}
+.w-open:hover{background:#3d78bd}
+
+/* список виджетов */
+.mock.list{background:linear-gradient(165deg,var(--ink-2),#160f28);padding:13px}
+.l-row{display:flex;align-items:center;gap:11px;margin-top:10px}
+.l-row img{width:54px;height:37px;border-radius:7px;object-fit:cover;flex:none;box-shadow:0 0 0 1px rgba(255,255,255,.1)}
+.l-row .t b{display:block;font-size:12.5px}
+.l-row .t span{font-size:10.5px;color:var(--mint);font-family:var(--mono)}
+
+/* мобила */
+.mock.mob{background:linear-gradient(165deg,var(--ink-2),#160f28);padding:11px}
+.m-frame{margin-top:9px;border-radius:11px;overflow:hidden;border:1px solid rgba(255,255,255,.08)}
+.m-frame img{width:100%;display:block}
+.m-msgs{padding:9px;display:grid;gap:7px;background:#100b1e}
+.m-msg{display:flex;gap:7px;align-items:flex-start}
+.m-msg .d{width:8px;height:8px;border-radius:50%;background:var(--sakura);flex:none;margin-top:4px}
+.m-msg .b{font-size:10.5px;color:var(--muted);line-height:1.4}
+.m-msg .b b{color:var(--sakura)}
+
+.cheat{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.cheat .c{border:1px solid var(--line);border-radius:13px;padding:13px 15px;background:rgba(255,255,255,.025)}
+.cheat .c h4{font-family:var(--display);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--sakura);margin-bottom:6px}
+.cheat .c p{font-size:11.5px;color:var(--muted)}
+.cheat .c b{color:var(--text)}
+.cheat .c .jp{font-family:var(--jp);color:var(--gold);font-size:11px}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,90px);z-index:300;
+  background:var(--ink-2);border:1px solid var(--sakura);color:var(--text);padding:13px 22px;border-radius:12px;
+  box-shadow:0 14px 34px rgba(0,0,0,.55);transition:transform .45s cubic-bezier(.2,.9,.3,1.2);font-size:14px}
+.toast.show{transform:translate(-50%,0)}
+
+@media(max-width:980px){
+  .forge{grid-template-columns:1fr}.panel{position:static}
+  .forge-head{grid-template-columns:1fr}.fh-meta{justify-self:start;text-align:left}
+  .mocks{grid-template-columns:1fr}.mock.widget{grid-row:auto}
+  .cheat{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+
+<div class="wrap">
+  <header class="forge-head">
+    <div>
+      <div class="fh-tag">// chat banner forge <span class="jp">会話バナー</span></div>
+      <h1 class="fh-title">CHAT <em>BANNER</em></h1>
+      <p class="fh-sub">Баннер для виджета <b>«Чат»</b> группы Club Anicoke. Превью живое — лепестки, пульс «в сети» и эквалайзер двигаются прямо в кадре; мокап справа собран по окну загрузки ВК.</p>
+    </div>
+    <div class="fh-meta">
+      <div class="fh-pill">минимум <b>376×256</b> · экспорт до <b>752×512</b></div>
+      <div class="fh-pill ok">✓ без кругового кропа</div>
+    </div>
+  </header>
+
+  <div class="forge">
+
+    <!-- ═══════ КОНТРОЛЫ ═══════ -->
+    <aside class="panel">
+      <div class="grp">
+        <label class="cap">композиция</label>
+        <div class="comps" id="comps">
+          <div class="comp on" data-c="invite"><canvas></canvas><span>приглашение</span><small>текст + Юки</small></div>
+          <div class="comp" data-c="online"><canvas></canvas><span>онлайн</span><small>счётчик в сети</small></div>
+          <div class="comp" data-c="karaoke"><canvas></canvas><span>караоке</span><small>now playing</small></div>
+          <div class="comp" data-c="stamp"><canvas></canvas><span>печать</span><small>иероглиф 話</small></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp">
+        <label class="cap">настроение</label>
+        <div class="moods" id="moods"></div>
+      </div>
+
+      <div class="grp">
+        <label class="cap">акцент</label>
+        <div class="accs" id="accs">
+          <div class="acc on" data-c="#ff9ec7" style="background:#ff9ec7"></div>
+          <div class="acc" data-c="#ffc85c" style="background:#ffc85c"></div>
+          <div class="acc" data-c="#6fe3c1" style="background:#6fe3c1"></div>
+          <div class="acc" data-c="#8ecbff" style="background:#8ecbff"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp" id="textRows">
+        <div class="field" data-use="invite online karaoke"><span class="cap">метка</span><input type="text" id="t-tag" value="// чат клуба"></div>
+        <div class="field" data-use="invite online karaoke stamp"><span class="cap">заголовок</span><input type="text" id="t-title" value="ЗАЛЕТАЙ"></div>
+        <div class="field" data-use="invite"><span class="cap">призыв</span><input type="text" id="t-sub" value="тут тепло и без спойлеров"></div>
+        <div class="field" data-use="invite online karaoke"><span class="cap">строка онлайн</span><input type="text" id="t-online" value="12 в сети"></div>
+        <div class="field" data-use="karaoke"><span class="cap">сейчас играет</span><input type="text" id="t-track" value="Gurenge — LiSA"></div>
+        <div class="field" data-use="stamp"><span class="cap">низ печати</span><input type="text" id="t-bot" value="★ アニコケ ★ CHAT ★"></div>
+        <div class="field" data-use="stamp"><span class="cap">иероглиф</span><input type="text" id="t-glyph" value="話"></div>
+      </div>
+
+      <div class="grp">
+        <label class="cap">детали баннера</label>
+        <div class="tog">
+          <label class="sw"><input type="checkbox" id="o-petals" checked><span class="box"></span>лепестки</label>
+          <label class="sw"><input type="checkbox" id="o-sun" checked><span class="box"></span>свечение</label>
+          <label class="sw"><input type="checkbox" id="o-stars" checked><span class="box"></span>звёзды</label>
+          <label class="sw"><input type="checkbox" id="o-online" checked><span class="box"></span>индикатор</label>
+          <label class="sw"><input type="checkbox" id="o-eq" checked><span class="box"></span>эквалайзер</label>
+          <label class="sw"><input type="checkbox" id="o-yuki" checked><span class="box"></span>Юки</label>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grp selrow">
+        <label class="cap">размер файла</label>
+        <select id="size">
+          <option value="752" selected>752 × 512 — ретина</option>
+          <option value="376">376 × 256 — минимум ВК</option>
+        </select>
+      </div>
+
+      <div class="dl-row">
+        <button class="dl" id="dl">⬇ Скачать PNG</button>
+        <button class="ghost" id="rand" title="случайный вариант">🎲</button>
+      </div>
+    </aside>
+
+    <!-- ═══════ СЦЕНА ═══════ -->
+    <section class="stage">
+      <div class="preview-zone">
+        <div class="preview-frame" id="frame">
+          <span class="corner tl"></span><span class="corner tr"></span>
+          <span class="corner bl"></span><span class="corner br"></span>
+          <canvas id="art"></canvas>
+          <canvas id="crop"></canvas>
+          <div class="crop-flag" id="cropFlag"><span class="led"></span>безопасные поля</div>
+        </div>
+      </div>
+      <div class="preview-cap">баннер <b>376×256</b> · превью <span class="live">● живое</span> · пунктир = поля, не прижимай текст к краям</div>
+
+      <div class="mocks">
+        <!-- виджет чата ВК -->
+        <div class="mock widget">
+          <div class="w-head"><span class="mk-tag">виджет «чат» · как в настройках</span><span class="w-x">✕</span></div>
+          <div class="w-banner"><img class="mk-ava" alt=""></div>
+          <div class="w-body">
+            <div class="w-row">
+              <div class="w-ico"><svg viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.5 1.4 4.7 3.6 6.2L4.5 21l4-2.1c1.1.3 2.3.5 3.5.5 5.5 0 10-3.6 10-8s-4.5-8-10-8z"/></svg></div>
+              <div class="t"><b>Чат</b><span>Ссылка <span class="col">https://vk.me/join/anicoke…</span> &nbsp;<span class="col">Свернуть</span></span></div>
+            </div>
+            <button class="w-open">Открыть чат сообщества</button>
+          </div>
+        </div>
+
+        <!-- список виджетов -->
+        <div class="mock list">
+          <div class="mk-tag">в списке виджетов</div>
+          <div class="l-row">
+            <img class="mk-ava" alt="">
+            <div class="t"><b>Чат</b><span>обложка загружена ✓</span></div>
+          </div>
+        </div>
+
+        <!-- мобила -->
+        <div class="mock mob">
+          <div class="mk-tag">мобильный вид</div>
+          <div class="m-frame">
+            <img class="mk-ava" alt="">
+            <div class="m-msgs">
+              <div class="m-msg"><span class="d"></span><span class="b"><b>Юки</b> опенинги не скипаем 🎤</span></div>
+              <div class="m-msg"><span class="d" style="background:var(--mint)"></span><span class="b"><b>Рэн</b> залетай, караоке в 19:00</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cheat">
+        <div class="c">
+          <h4>формат <span class="jp">サイズ</span></h4>
+          <p>Минимум <b>376×256</b>, форматы <b>JPG / GIF / PNG</b>. Квадрат не нужен — это прямоугольник, он показывается как есть.</p>
+        </div>
+        <div class="c">
+          <h4>кропа нет <span class="jp">円なし</span></h4>
+          <p>В отличие от аватарки, ВК не вписывает баннер чата в круг. Углы останутся — используй их под декор и лепестки.</p>
+        </div>
+        <div class="c">
+          <h4>про GIF <span class="jp">動画</span></h4>
+          <p>Студия отдаёт <b>PNG</b>. Хочешь движение в самом виджете — собери GIF из кадров в любом gif-мейкере; статика же смотрится чище.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const BW=376, BH=256;
+
+/* ═══════════ ambient-фон страницы ═══════════ */
+(()=>{const cv=$('#bg'),cx=cv.getContext('2d');let W,H,ps=[],st=[];
+  const C=['#ffb7d5','#ff9ec7','#ffd3e4'];
+  function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+    st=Array.from({length:54},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.4,p:Math.random()*6.28}));}
+  addEventListener('resize',rs);rs();
+  for(let i=0;i<22;i++)ps.push({x:Math.random()*W,y:Math.random()*H,s:5+Math.random()*7,vy:.4+Math.random()*.9,ph:Math.random()*6.28,sw:.4+Math.random()*.7,rot:Math.random()*6.28,vr:(Math.random()-.5)*.04,c:C[Math.random()*3|0],a:.3+Math.random()*.4});
+  function petal(p){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.globalAlpha=p.a;cx.fillStyle=p.c;
+    cx.beginPath();const s=p.s;cx.moveTo(0,0);cx.bezierCurveTo(s*.6,-s*.5,s*1.1,-s*.1,s*.55,s*.5);
+    cx.bezierCurveTo(s*.2,s*.75,-s*.1,s*.4,0,0);cx.fill();cx.restore();}
+  (function loop(){cx.clearRect(0,0,W,H);
+    for(const s of st){s.p+=.02;cx.globalAlpha=.12+Math.abs(Math.sin(s.p))*.5;cx.fillStyle='#fff';cx.beginPath();cx.arc(s.x,s.y,s.r,0,6.28);cx.fill();}
+    cx.globalAlpha=1;for(const p of ps){p.ph+=.02;p.y+=p.vy;p.x+=Math.sin(p.ph)*p.sw+.2;p.rot+=p.vr;if(p.y>H+20){p.y=-20;p.x=Math.random()*W;}petal(p);}
+    requestAnimationFrame(loop);})();
+})();
+
+/* ═══════════ пресеты ═══════════ */
+const MOODS={
+  sunset:{name:'закат',bg:[[0,'#3a1230'],[.5,'#241029'],[1,'#150f24']],sun:{x:.82,y:.34,r:.7,c0:'#ff8fa0',c1:'#e63956',c2:'#b81f42'}},
+  night :{name:'ночь', bg:[[0,'#160f2c'],[1,'#0d0a1c']],sun:{x:.8,y:.3,r:.6,c0:'rgba(143,203,255,.5)',c1:'rgba(111,227,193,.16)',c2:'transparent'}},
+  sakura:{name:'сакура',bg:[[0,'#4a1c3c'],[.5,'#341634'],[1,'#241634']],sun:{x:.8,y:.36,r:.7,c0:'#ffc2dd',c1:'#ff7da6',c2:'#d96f9c'}},
+  neon  :{name:'неон', bg:[[0,'#120c22'],[1,'#0a0716']],sun:{x:.82,y:.4,r:.65,c0:'rgba(111,227,193,.42)',c1:'rgba(255,79,110,.18)',c2:'transparent'}},
+};
+
+/* ═══════════ состояние ═══════════ */
+const S={comp:'invite',mood:'sunset',accent:'#ff9ec7',
+  petals:true,sun:true,stars:true,online:true,eq:true,yuki:true,showCrop:true,
+  tag:'// чат клуба',title:'ЗАЛЕТАЙ',sub:'тут тепло и без спойлеров',online_t:'12 в сети',
+  track:'Gurenge — LiSA',bot:'★ アニコケ ★ CHAT ★',glyph:'話'};
+
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+
+/* ═══════════ генератор Юки ═══════════ */
+const YUKI={pal:{hair:['#ffd0e6','#ff9ec7','#cf6494'],skin:'#ffe7d8',skinSh:'#efbca2',cloth:['#ff6482','#c52f4d'],accent:'#ffd27a',eye:'#8a52e0'},hair:'long',acc:'catears',hp:true,eye2:'#39d0c8',scarf:true,turn:1};
+let _uid=0;
+function chibiSVG(o){
+  const id='y'+(_uid++),p=o.pal,[hL,hM,hD]=p.hair,[cL,cD]=p.cloth,eyeA=p.eye,eyeB=o.eye2||p.eye;
+  const dx=(o.turn||0)*6, sxL=o.turn>0?.82:o.turn<0?1.04:1, sxR=o.turn<0?.82:o.turn>0?1.04:1;
+  const defs=`<defs>
+   <linearGradient id="${id}_h" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${hL}"/><stop offset=".45" stop-color="${hM}"/><stop offset="1" stop-color="${hD}"/></linearGradient>
+   <linearGradient id="${id}_hd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hM}"/><stop offset="1" stop-color="${hD}"/></linearGradient>
+   <radialGradient id="${id}_sk" cx=".38" cy=".32" r=".82"><stop offset="0" stop-color="#fff2e8"/><stop offset=".5" stop-color="${p.skin}"/><stop offset="1" stop-color="${p.skinSh}"/></radialGradient>
+   <linearGradient id="${id}_cl" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${cL}"/><stop offset="1" stop-color="${cD}"/></linearGradient>
+   <linearGradient id="${id}_ac" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.accent}"/><stop offset="1" stop-color="${cD}"/></linearGradient>
+   <linearGradient id="${id}_sc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${p.accent}"/><stop offset=".5" stop-color="${hM}"/><stop offset="1" stop-color="${cD}"/></linearGradient>
+   <radialGradient id="${id}_eye0" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="${eyeA}"/><stop offset=".55" stop-color="${eyeA}"/><stop offset="1" stop-color="#140d24"/></radialGradient>
+   <radialGradient id="${id}_eye1" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="${eyeB}"/><stop offset=".55" stop-color="${eyeB}"/><stop offset="1" stop-color="#140d24"/></radialGradient>
+   <radialGradient id="${id}_bl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff7d9c" stop-opacity=".55"/><stop offset="1" stop-color="#ff7d9c" stop-opacity="0"/></radialGradient>
+   <radialGradient id="${id}_ear" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="#ff8fb0"/><stop offset="1" stop-color="#d96f9c"/></radialGradient>
+   <radialGradient id="${id}_hp" cx=".34" cy=".3" r=".85"><stop offset="0" stop-color="#4a4260"/><stop offset=".5" stop-color="#2a2438"/><stop offset="1" stop-color="#100c1a"/></radialGradient>
+  </defs>`;
+  const ears=`<g><path d="M50,42 C44,16 52,8 60,14 C62,26 60,36 58,44 Z" fill="url(#${id}_h)"/><path d="M52,38 C49,22 54,16 58,20 C59,28 58,34 56,40 Z" fill="url(#${id}_ear)"/></g>
+   <g><path d="M90,42 C96,16 88,8 80,14 C78,26 80,36 82,44 Z" fill="url(#${id}_h)"/><path d="M88,38 C91,22 86,16 82,20 C81,28 82,34 84,40 Z" fill="url(#${id}_ear)"/></g>`;
+  const hpBand=`<path d="M41,54 C44,22 96,22 99,54" stroke="url(#${id}_hp)" stroke-width="7.5" fill="none" stroke-linecap="round"/><path d="M46,40 C52,25 88,25 94,40" stroke="#fff" stroke-width="1.6" fill="none" opacity=".3" stroke-linecap="round"/>`;
+  const back=`<path d="M40,56 C36,30 104,30 100,56 C100,72 96,84 92,92 L48,92 C44,84 40,72 40,56 Z" fill="url(#${id}_hd)"/>`;
+  const long=`<path d="M42,58 C30,92 30,134 44,160 C40,128 44,96 52,72 Z" fill="url(#${id}_hd)"/><path d="M44,60 C36,90 38,124 48,150 C46,120 50,92 56,72 Z" fill="url(#${id}_h)" opacity=".9"/><path d="M98,58 C110,92 110,134 96,160 C100,128 96,96 88,72 Z" fill="url(#${id}_hd)"/><path d="M96,60 C104,90 102,124 92,150 C94,120 90,92 84,72 Z" fill="url(#${id}_h)" opacity=".9"/>`;
+  const tail=`<g><path d="M92,150 C116,150 130,124 124,98 C122,86 112,84 110,96 C113,116 104,134 90,140 Z" fill="url(#${id}_hd)"/><path d="M124,98 C122,86 112,84 110,96 C111,104 114,108 118,108 C122,108 125,104 124,98 Z" fill="${hL}"/></g>`;
+  const leg=(x)=>`<g><path d="M${x},148 C${x-2},166 ${x-2},182 ${x},196 C${x+4},198 ${x+8},196 ${x+8},190 C${x+7},178 ${x+7},162 ${x+8},150 Z" fill="url(#${id}_sk)"/><path d="M${x-4},192 q-3,9 7,10 q13,1 13,-6 q0,-6 -9,-7 q-8,-1 -11,3z" fill="url(#${id}_cl)"/><path d="M${x-4},199 q10,3 20,0" stroke="rgba(0,0,0,.32)" stroke-width="2" fill="none"/></g>`;
+  const torso=`<g><path d="M50,92 C48,90 92,90 90,92 C97,114 99,134 94,150 C82,157 58,157 46,150 C41,134 43,114 50,92 Z" fill="url(#${id}_cl)"/><path d="M58,92 L70,106 L82,92 Z" fill="${p.accent}"/><path d="M46,96 q24,10 48,0 q-6,10 -24,10 q-18,0 -24,-10z" fill="rgba(40,12,30,.4)"/><g transform="translate(70,124)" fill="${p.accent}"><path d="M0,-6 C2,-2 6,-2 4,1 C6,4 2,4 0,7 C-2,4 -6,4 -4,1 C-6,-2 -2,-2 0,-6 Z"/></g></g>`;
+  const armL=`<g><path d="M48,96 C38,102 35,120 40,134 C44,138 49,136 48,129 C46,118 48,106 53,99 Z" fill="url(#${id}_cl)"/><circle cx="43" cy="134" r="6" fill="url(#${id}_sk)"/></g>`;
+  const armR=`<g><path d="M92,96 C104,86 110,64 105,46 C100,40 93,43 94,52 C97,66 92,80 84,90 Z" fill="url(#${id}_cl)"/><circle cx="104" cy="44" r="7" fill="url(#${id}_sk)"/><path d="M99,39 q1,-5 3,-4 M103,37 q1,-5 3,-3 M107,39 q2,-4 3,-2 M110,42 q2,-3 3,-1" stroke="${p.skinSh}" stroke-width="1.6" fill="none" stroke-linecap="round"/></g>`;
+  const scarf=`<g><path d="M62,98 C58,112 56,128 60,140 C64,142 67,140 66,134 C64,122 65,110 68,100 Z" fill="url(#${id}_sc)"/><path d="M78,98 C82,112 84,128 80,140 C76,142 73,140 74,134 C76,122 75,110 72,100 Z" fill="url(#${id}_sc)"/><path d="M48,90 C58,98 82,98 92,90 C94,96 92,102 88,104 C76,110 64,110 52,104 C48,102 46,96 48,90 Z" fill="url(#${id}_sc)"/></g>`;
+  const neck=`<path d="M62,82 h16 v12 q-8,6 -16,0z" fill="url(#${id}_sk)"/>`;
+  const face=`<path d="M44,60 C44,34 96,34 96,60 C96,82 84,94 70,94 C56,94 44,82 44,60 Z" fill="url(#${id}_sk)"/><path d="M70,36 C86,36 96,46 96,60 C96,80 86,92 74,93 C84,86 88,72 88,60 C88,48 82,40 70,38 Z" fill="rgba(60,20,40,.13)"/><path d="M46,58 C46,46 52,40 60,38 C50,42 47,52 48,64 C48,72 50,80 56,86 C49,80 46,70 46,58 Z" fill="#fff" opacity=".4"/>`;
+  const front=`<path d="M40,56 C38,28 102,28 100,56 C100,42 92,34 84,32 C90,44 84,50 78,42 C76,54 68,44 64,54 C60,44 52,54 50,42 C44,50 38,44 44,32 C48,34 40,42 40,56 Z" fill="url(#${id}_h)"/><path d="M50,36 C52,50 56,56 58,46 C58,56 62,58 64,48 C64,58 68,58 70,48 C72,58 76,56 76,44 C78,56 82,50 82,40 C74,30 56,30 50,36 Z" fill="url(#${id}_h)"/><path d="M46,32 C58,24 82,24 94,34 C82,29 58,29 46,37 Z" fill="#fff" opacity=".34"/>`;
+  const cup=(px,rot)=>`<g transform="rotate(${rot} ${px} 64)"><ellipse cx="${px}" cy="64" rx="10.5" ry="14.5" fill="url(#${id}_hp)"/><ellipse cx="${px}" cy="64" rx="7.4" ry="11" fill="none" stroke="${p.accent}" stroke-width="1.6" opacity=".85"/><ellipse cx="${px}" cy="64" rx="5" ry="8.4" fill="#0c0814"/><ellipse cx="${px-3}" cy="58" rx="2.4" ry="4.4" fill="#fff" opacity=".45"/></g>`;
+  const eye=(ex,grad,sx)=>{const w=sx!==1?`translate(${ex},0) scale(${sx},1) translate(${-ex},0)`:'';
+    const g=`<g><path d="M${ex-9},58 q9,-8 18,0 q1,11 -3,15 q-6,5 -12,0 q-4,-4 -3,-15z" fill="#fff"/><ellipse cx="${ex}" cy="65" rx="7" ry="8.4" fill="#160e26"/><ellipse cx="${ex}" cy="65" rx="6.3" ry="7.7" fill="url(#${grad})"/><ellipse cx="${ex}" cy="65" rx="2.8" ry="3.8" fill="#120b22"/><circle cx="${ex+2.3}" cy="61" r="2.3" fill="#fff"/><circle cx="${ex-2.4}" cy="68.4" r="1.2" fill="#fff" opacity=".85"/><path d="M${ex-9.5},57 q9.5,-7 19,0" stroke="#1d1430" stroke-width="3" fill="none" stroke-linecap="round"/></g>`;
+    return w?`<g transform="${w}">${g}</g>`:g;};
+  const feat=`<g transform="translate(${dx},0)"><path d="M50,52 q7,-3 13,-1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M77,51 q7,-2 13,1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/>${eye(58,id+'_eye0',sxL)}${eye(82,id+'_eye1',sxR)}<ellipse cx="52" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/><ellipse cx="88" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/><path d="M69,72 q1,3 3,3" stroke="${p.skinSh}" stroke-width="1.7" fill="none" stroke-linecap="round"/><path d="M63,79 q7,8 14,0 q-2,7 -7,7 q-5,0 -7,-7z" fill="#9c2740"/><path d="M64,80 q6,3 12,0 q-2,2 -6,2 q-4,0 -6,-2z" fill="#ff8aa0"/></g>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="240" viewBox="0 0 140 240">${defs}<ellipse cx="70" cy="232" rx="30" ry="6" fill="rgba(0,0,0,.35)"/>${tail}${back}${long}${hpBand}${ears}${leg(56)}${leg(64)}${torso}${armL}${armR}${neck}${scarf}${face}${front}${cup(40,-8)}${cup(100,8)}${feat}</svg>`;
+}
+let yukiImg=null;
+function loadYuki(){return new Promise(res=>{const img=new Image();
+  img.onload=()=>{yukiImg=img;res();};img.onerror=()=>res();
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(chibiSVG(YUKI));});}
+
+function sakuraPath(ctx,s){ctx.beginPath();
+  for(let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;ctx.moveTo(0,0);
+    ctx.bezierCurveTo(Math.cos(a-.5)*s*.5,Math.sin(a-.5)*s*.5,Math.cos(a-.25)*s,Math.sin(a-.25)*s,Math.cos(a)*s,Math.sin(a)*s);
+    ctx.bezierCurveTo(Math.cos(a+.25)*s,Math.sin(a+.25)*s,Math.cos(a+.5)*s*.5,Math.sin(a+.5)*s*.5,0,0);}
+  ctx.closePath();}
+
+/* ═══════════ живые лепестки превью (координаты BW×BH) ═══════════ */
+let livePetals=[];
+(function seedPetals(){const r=rng(99);for(let i=0;i<26;i++)livePetals.push({x:r()*BW,y:r()*BH,s:3+r()*5,vy:.18+r()*.4,ph:r()*6.28,sw:.2+r()*.4,rot:r()*6.28,vr:(r()-.5)*.03,a:.3+r()*.45});})();
+function stepPetals(){for(const p of livePetals){p.ph+=.02;p.y+=p.vy;p.x+=Math.sin(p.ph)*p.sw+.08;p.rot+=p.vr;if(p.y>BH+8){p.y=-8;p.x=Math.random()*BW;}}}
+
+/* ═══════════ фон баннера ═══════════ */
+function drawBg(ctx,W,H,opt){
+  const m=MOODS[S.mood];
+  const g=ctx.createLinearGradient(0,0,W*.3,H);m.bg.forEach(s=>g.addColorStop(s[0],s[1]));
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  if(S.stars){const r=rng(7);ctx.fillStyle='#fff';for(let i=0;i<46;i++){ctx.globalAlpha=.15+r()*.6;ctx.beginPath();ctx.arc(r()*W,r()*H,r()*1.3+.3,0,6.28);ctx.fill();}ctx.globalAlpha=1;}
+  if(S.sun&&m.sun){const sx=m.sun.x*W,sy=m.sun.y*H,sr=m.sun.r*Math.min(W,H);
+    const rg=ctx.createRadialGradient(sx,sy,0,sx,sy,sr);rg.addColorStop(0,m.sun.c0);rg.addColorStop(.6,m.sun.c1);rg.addColorStop(1,m.sun.c2);
+    ctx.fillStyle=rg;ctx.beginPath();ctx.arc(sx,sy,sr,0,6.28);ctx.fill();}
+  // лепестки
+  if(S.petals){const C=['#ffb7d5','#ff9ec7','#ffd3e4','#ff8fb8'];
+    if(opt.live){for(const p of livePetals){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.rot);ctx.globalAlpha=p.a;ctx.fillStyle=C[(p.x|0)%4];
+      const s=p.s;ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(s*.6,-s*.5,s*1.1,-s*.1,s*.55,s*.5);ctx.bezierCurveTo(s*.2,s*.75,-s*.1,s*.4,0,0);ctx.fill();ctx.restore();}ctx.globalAlpha=1;}
+    else{const r=rng(42);for(let i=0;i<26;i++){const x=r()*W,y=r()*H,s=3+r()*5,rot=r()*6.28;ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=.3+r()*.45;ctx.fillStyle=C[r()*4|0];
+      ctx.beginPath();ctx.moveTo(0,0);ctx.bezierCurveTo(s*.6,-s*.5,s*1.1,-s*.1,s*.55,s*.5);ctx.bezierCurveTo(s*.2,s*.75,-s*.1,s*.4,0,0);ctx.fill();ctx.restore();}ctx.globalAlpha=1;}}
+  // виньетка по краям для читаемости текста
+  const vg=ctx.createRadialGradient(W*.42,H*.5,H*.2,W*.42,H*.5,W*.85);
+  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(8,5,16,.55)');ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+}
+
+/* эквалайзер */
+function drawEq(ctx,x,y,w,h,opt){
+  const n=6,bw=w/n*.62,gap=w/n;const AC=S.accent;
+  for(let i=0;i<n;i++){let lv;
+    if(opt.live) lv=.35+Math.abs(Math.sin(opt.t*.006+i*1.3))*.65;
+    else lv=.3+((Math.sin(i*2.1+1.7)+1)/2)*.7;
+    const bh=h*lv;ctx.fillStyle=AC;ctx.globalAlpha=.9;
+    const rx=x+i*gap;roundRect(ctx,rx,y+h-bh,bw,bh,1.4);ctx.fill();ctx.globalAlpha=1;}
+}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+/* онлайн-индикатор */
+function drawOnline(ctx,x,y,opt){
+  const AC=S.accent;let pulse;
+  if(opt.live) pulse=(Math.sin(opt.t*.005)+1)/2; else pulse=.6;
+  ctx.save();
+  ctx.strokeStyle='rgba(111,227,193,'+(.5-.35*pulse)+')';ctx.lineWidth=1.4;
+  ctx.beginPath();ctx.arc(x,y,3.4+pulse*3,0,6.28);ctx.stroke();
+  ctx.fillStyle='#6fe3c1';ctx.shadowColor='#6fe3c1';ctx.shadowBlur=6;
+  ctx.beginPath();ctx.arc(x,y,3,0,6.28);ctx.fill();ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(246,241,251,.9)';ctx.font=`600 9px 'Golos Text',sans-serif`;ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillText(S.online_t,x+9,y+.5);
+  ctx.restore();
+}
+
+/* текст по дуге (для stamp) */
+function ringText(ctx,text,cx,cy,radius,font,color,top){
+  ctx.save();ctx.translate(cx,cy);ctx.fillStyle=color;ctx.font=font;ctx.textAlign='center';ctx.textBaseline='middle';
+  const chars=[...text];const gap=.02;
+  ctx.save();const widths=chars.map(ch=>ctx.measureText(ch).width/radius);ctx.restore();
+  const total=widths.reduce((a,b)=>a+b,0)+gap*(chars.length-1);
+  let ang=top? -Math.PI/2-total/2 : Math.PI/2+total/2;
+  chars.forEach((ch,i)=>{const w=widths[i];const a=ang+(top?w/2:-w/2);
+    ctx.save();ctx.rotate(a);ctx.translate(0,top?-radius:radius);if(!top)ctx.rotate(Math.PI);ctx.fillText(ch,0,0);ctx.restore();
+    ang+=(top?w:-w)+(top?gap:-gap);});
+  ctx.restore();
+}
+
+/* ═══════════ композиции ═══════════ */
+function drawComp(ctx,W,H,opt){
+  const AC=S.accent, pad=W*.07;
+  ctx.textBaseline='alphabetic';
+
+  if(S.comp==='invite'){
+    ctx.textAlign='left';
+    ctx.fillStyle=AC;ctx.font=`500 ${H*.062}px 'JetBrains Mono',monospace`;ctx.fillText(S.tag,pad,H*.24);
+    ctx.fillStyle='#fff';ctx.font=`900 ${H*.27}px 'Unbounded',sans-serif`;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=8;ctx.fillText(S.title,pad,H*.55);ctx.restore();
+    ctx.fillStyle='rgba(246,241,251,.82)';ctx.font=`500 ${H*.082}px 'Golos Text',sans-serif`;ctx.fillText(S.sub,pad,H*.72);
+    if(S.online) drawOnline(ctx,pad+3,H*.88,opt);
+    if(S.eq) drawEq(ctx,W*.40,H*.80,W*.20,H*.12,opt);
+    if(S.yuki&&yukiImg){const hh=H*1.18,ww=hh*(140/240);ctx.drawImage(yukiImg,18,30,104,150,W-pad-ww,-H*.06,ww,hh);}
+  }
+  else if(S.comp==='online'){
+    ctx.textAlign='left';
+    ctx.fillStyle=AC;ctx.font=`500 ${H*.062}px 'JetBrains Mono',monospace`;ctx.fillText(S.tag,pad,H*.22);
+    ctx.fillStyle='#fff';ctx.font=`900 ${H*.15}px 'Unbounded',sans-serif`;ctx.fillText(S.title,pad,H*.42);
+    // крупный счётчик
+    const num=(S.online_t.match(/\d+/)||['0'])[0];
+    ctx.fillStyle=AC;ctx.font=`900 ${H*.42}px 'Unbounded',sans-serif`;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.4)';ctx.shadowBlur=10;ctx.fillText(num,pad,H*.86);ctx.restore();
+    ctx.fillStyle='rgba(246,241,251,.85)';ctx.font=`600 ${H*.085}px 'Golos Text',sans-serif`;
+    ctx.fillText('в сети сейчас',pad+ctx.measureText(num).width+8,H*.84);
+    if(S.online) drawOnline(ctx,pad+3,H*.95,opt);
+    if(S.yuki&&yukiImg){const hh=H*.92,ww=hh*(140/240);ctx.drawImage(yukiImg,24,40,92,150,W-pad-ww,H*.06,ww,hh);}
+  }
+  else if(S.comp==='karaoke'){
+    ctx.textAlign='left';
+    ctx.fillStyle=AC;ctx.font=`500 ${H*.062}px 'JetBrains Mono',monospace`;ctx.fillText(S.tag,pad,H*.22);
+    ctx.fillStyle='#fff';ctx.font=`900 ${H*.2}px 'Unbounded',sans-serif`;ctx.fillText(S.title,pad,H*.46);
+    // now playing плашка
+    const py=H*.62,pw=W*.62,ph=H*.2;
+    ctx.fillStyle='rgba(14,10,28,.55)';roundRect(ctx,pad,py,pw,ph,7);ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.12)';ctx.lineWidth=1;roundRect(ctx,pad,py,pw,ph,7);ctx.stroke();
+    if(S.eq) drawEq(ctx,pad+8,py+ph*.22,ph*.6,ph*.56,opt);
+    ctx.fillStyle=AC;ctx.font=`700 ${H*.07}px 'Golos Text',sans-serif`;ctx.textBaseline='middle';
+    ctx.fillText('▶  '+S.track,pad+ph*.78,py+ph*.5);ctx.textBaseline='alphabetic';
+    if(S.online) drawOnline(ctx,pad+3,H*.95,opt);
+    if(S.yuki&&yukiImg){const hh=H*1.05,ww=hh*(140/240);ctx.drawImage(yukiImg,20,34,100,150,W-pad-ww,H*.0,ww,hh);}
+  }
+  else if(S.comp==='stamp'){
+    const cx=W/2,cy=H/2;
+    // угловые сакуры
+    ctx.save();ctx.fillStyle=AC;ctx.globalAlpha=.85;
+    [[pad+6,pad+8],[W-pad-6,pad+8],[pad+6,H-pad-8],[W-pad-6,H-pad-8]].forEach(([x,y],i)=>{ctx.save();ctx.translate(x,y);ctx.rotate(i*Math.PI/2);sakuraPath(ctx,H*.07);ctx.fill();ctx.restore();});
+    ctx.restore();
+    ringText(ctx,S.title,cx,cy,H*.40,`700 ${H*.085}px 'Unbounded',sans-serif`,'#fff',true);
+    ringText(ctx,S.bot,cx,cy,H*.40,`500 ${H*.062}px 'JetBrains Mono',monospace`,AC,false);
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle=AC;ctx.font=`400 ${H*.5}px 'DotGothic16',sans-serif`;
+    ctx.save();ctx.shadowColor='rgba(0,0,0,.45)';ctx.shadowBlur=8;ctx.fillText(S.glyph,cx,cy+H*.02);ctx.restore();
+    ctx.textBaseline='alphabetic';
+  }
+}
+
+/* ═══════════ безопасные поля (overlay) ═══════════ */
+function drawCrop(){
+  const cv=$('#crop'),dpr=Math.min(2,devicePixelRatio||1);
+  cv.width=BW*dpr;cv.height=BH*dpr;const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,BW,BH);if(!S.showCrop)return;
+  ctx.save();ctx.strokeStyle='rgba(255,200,92,.8)';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+  ctx.strokeRect(BW*.05,BH*.06,BW*.9,BH*.88);ctx.setLineDash([]);
+  ctx.fillStyle='rgba(255,200,92,.85)';ctx.font=`500 8px 'JetBrains Mono',monospace`;ctx.textAlign='left';
+  ctx.fillText('не прижимай к краям',BW*.05+4,BH*.06-3);
+  ctx.restore();
+}
+
+/* ═══════════ рендер превью (один кадр) ═══════════ */
+const art=$('#art');
+function setupArt(){const dpr=Math.min(2,devicePixelRatio||1);art.width=BW*dpr;art.height=BH*dpr;
+  art.getContext('2d').setTransform(dpr,0,0,dpr,0,0);}
+function paintFrame(t,live){
+  const ctx=art.getContext('2d');ctx.clearRect(0,0,BW,BH);
+  drawBg(ctx,BW,BH,{t,live});drawComp(ctx,BW,BH,{t,live});
+}
+function syncMocks(){const url=art.toDataURL('image/png');$$('.mk-ava').forEach(im=>im.src=url);
+  $$('#comps .comp').forEach(b=>{const cv=b.querySelector('canvas');cv.width=124;cv.height=84;
+    const cx=cv.getContext('2d');cx.clearRect(0,0,124,84);const save=S.comp;S.comp=b.dataset.c;
+    drawBg(cx,124,84,{t:0,live:false});drawComp(cx,124,84,{t:0,live:false});S.comp=save;});}
+
+/* живой цикл превью */
+(function loop(){const t=performance.now();stepPetals();paintFrame(t,true);requestAnimationFrame(loop);})();
+setInterval(syncMocks,820);   // мокапы обновляются плавно, без мерцания 60fps
+
+/* ═══════════ UI ═══════════ */
+const moodsEl=$('#moods');
+Object.entries(MOODS).forEach(([k,m])=>{const b=document.createElement('div');
+  b.className='mood'+(k===S.mood?' on':'');b.dataset.m=k;
+  b.style.background=`linear-gradient(150deg,${m.bg[0][1]},${m.bg[m.bg.length-1][1]})`;
+  b.innerHTML=`<i>${m.name}</i>`;moodsEl.appendChild(b);
+  b.onclick=()=>{$$('.mood').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.mood=k;pop();syncMocks();};});
+
+function refreshFields(){$$('#textRows .field').forEach(f=>{const use=(f.dataset.use||'').split(' ');
+  f.classList.toggle('gone',!use.includes(S.comp));});}
+$('#comps').addEventListener('click',e=>{const b=e.target.closest('.comp');if(!b)return;
+  $$('#comps .comp').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.comp=b.dataset.c;refreshFields();pop();syncMocks();});
+
+$('#accs').addEventListener('click',e=>{const a=e.target.closest('.acc');if(!a)return;
+  $$('.acc').forEach(x=>x.classList.remove('on'));a.classList.add('on');S.accent=a.dataset.c;syncMocks();});
+
+[['#t-tag','tag'],['#t-title','title'],['#t-sub','sub'],['#t-online','online_t'],['#t-track','track'],['#t-bot','bot'],['#t-glyph','glyph']]
+  .forEach(([sel,key])=>$(sel).addEventListener('input',e=>{S[key]=e.target.value;syncMocks();}));
+
+[['#o-petals','petals'],['#o-sun','sun'],['#o-stars','stars'],['#o-online','online'],['#o-eq','eq'],['#o-yuki','yuki']]
+  .forEach(([sel,key])=>$(sel).addEventListener('change',e=>{S[key]=e.target.checked;syncMocks();}));
+
+$('#cropFlag').onclick=()=>{S.showCrop=!S.showCrop;$('#cropFlag').classList.toggle('off',!S.showCrop);drawCrop();};
+
+function pop(){const f=$('#frame');f.classList.remove('pop');void f.offsetWidth;f.classList.add('pop');}
+
+$('#rand').onclick=()=>{const mk=Object.keys(MOODS),cp=['invite','online','karaoke','stamp'],ac=['#ff9ec7','#ffc85c','#6fe3c1','#8ecbff'];
+  S.mood=mk[Math.random()*4|0];S.comp=cp[Math.random()*4|0];S.accent=ac[Math.random()*4|0];
+  $$('.mood').forEach(x=>x.classList.toggle('on',x.dataset.m===S.mood));
+  $$('.acc').forEach(x=>x.classList.toggle('on',x.dataset.c===S.accent));
+  $$('#comps .comp').forEach(x=>x.classList.toggle('on',x.dataset.c===S.comp));
+  refreshFields();pop();syncMocks();toast('🎲 новый вариант');};
+
+/* экспорт */
+$('#dl').onclick=async()=>{const btn=$('#dl');btn.classList.add('busy');btn.textContent='⏳ рендерю…';
+  try{await Promise.all(['900 100px Unbounded','700 100px Golos Text','400 100px DotGothic16','500 100px JetBrains Mono'].map(f=>document.fonts.load(f).catch(()=>{})));
+    await document.fonts.ready;
+    const tw=+$('#size').value, th=Math.round(tw*BH/BW);
+    const off=document.createElement('canvas');off.width=tw;off.height=th;
+    const octx=off.getContext('2d');octx.scale(tw/BW,th/BH);
+    drawBg(octx,BW,BH,{t:0,live:false});drawComp(octx,BW,BH,{t:0,live:false});
+    off.toBlob(blob=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+      a.download=`anicoke-chat-banner-${tw}x${th}.png`;a.click();URL.revokeObjectURL(a.href);
+      btn.classList.remove('busy');btn.classList.add('done');btn.textContent='✓ готово';
+      toast('🌸 баннер скачан → виджет «Чат» → Обложка → Загрузить');
+      setTimeout(()=>{btn.classList.remove('done');btn.textContent='⬇ Скачать PNG';},2200);},'image/png');
+  }catch(e){btn.classList.remove('busy');btn.textContent='⬇ Скачать PNG';toast('ошибка рендера');}};
+
+let tT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3000);}
+
+/* старт */
+(async()=>{setupArt();addEventListener('resize',()=>{setupArt();drawCrop();});
+  await Promise.all(['900 100px Unbounded','700 100px Golos Text','400 100px DotGothic16','500 100px JetBrains Mono'].map(f=>document.fonts.load(f).catch(()=>{})));
+  await document.fonts.ready;await loadYuki();refreshFields();drawCrop();syncMocks();})();
+</script>
+</body>
+</html>

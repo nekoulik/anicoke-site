@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post Forge — редактор постов для Club Anicoke</title>
+<meta name="theme-color" content="#150f24">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📝</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Golos+Text:wght@400;500;600;700&family=DotGothic16&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#150f24; --ink-2:#1e1633; --ink-3:#2a2044;
+  --line:rgba(255,255,255,.11);
+  --text:#f6f1fb; --muted:#b3a5ca;
+  --sakura:#ff9ec7; --hot:#ff4f6e; --gold:#ffc85c; --mint:#6fe3c1; --sky:#8ecbff;
+  --display:'Unbounded',sans-serif; --body:'Golos Text',sans-serif;
+  --jp:'DotGothic16',sans-serif; --mono:'JetBrains Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--ink);color:var(--text);line-height:1.6;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;z-index:-3;
+  background:
+    radial-gradient(720px 540px at 84% -10%, rgba(255,79,110,.16), transparent 60%),
+    radial-gradient(640px 500px at -8% 20%, rgba(255,158,199,.12), transparent 60%),
+    radial-gradient(760px 600px at 70% 114%, rgba(255,200,92,.08), transparent 60%),
+    var(--ink);}
+#bg{position:fixed;inset:0;z-index:-2;pointer-events:none}
+::selection{background:var(--hot);color:#fff}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--ink)}
+::-webkit-scrollbar-thumb{background:var(--ink-3);border-radius:8px}
+button{font-family:inherit}
+
+.wrap{max-width:1440px;margin:0 auto;padding:0 22px;position:relative;z-index:2}
+
+/* ── opener: фирменный, не центрированный trio ── */
+.forge-head{padding:46px 0 20px;display:grid;grid-template-columns:1.5fr .8fr;gap:28px;align-items:end}
+.fh-tag{font-family:var(--mono);color:var(--hot);letter-spacing:.16em;font-size:12.5px;display:flex;align-items:center;gap:10px}
+.fh-tag .jp{font-family:var(--jp);color:var(--muted);letter-spacing:.3em}
+.fh-tag .bars{display:flex;gap:3px;align-items:flex-end;height:14px}
+.fh-tag .bars i{width:3px;background:var(--gold);border-radius:2px;animation:hb 1s infinite ease-in-out}
+.fh-tag .bars i:nth-child(2){animation-delay:.15s}.fh-tag .bars i:nth-child(3){animation-delay:.3s}.fh-tag .bars i:nth-child(4){animation-delay:.45s}
+@keyframes hb{0%,100%{height:25%}50%{height:100%}}
+.fh-title{font-family:var(--display);font-weight:900;font-size:clamp(30px,5.6vw,62px);line-height:.88;
+  text-transform:uppercase;letter-spacing:-.014em;margin-top:11px}
+.fh-title em{font-style:normal;color:transparent;-webkit-text-stroke:2px var(--sakura)}
+.fh-title .pen{color:var(--gold);-webkit-text-stroke:0}
+.fh-sub{color:var(--muted);font-size:14px;margin-top:9px;max-width:520px}
+.fh-sub b{color:var(--text)}
+.fh-meta{justify-self:end;display:grid;gap:8px;text-align:right}
+.fh-pill{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);
+  border-radius:999px;padding:8px 14px;background:rgba(255,255,255,.03);white-space:nowrap}
+.fh-pill b{color:var(--gold)}
+.fh-pill .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mint);
+  box-shadow:0 0 10px var(--mint);margin-right:7px;vertical-align:middle;animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── три колонки: инструменты / редактор / превью ── */
+.forge{display:grid;grid-template-columns:268px minmax(0,1fr) 392px;gap:22px;align-items:start;padding-bottom:90px}
+.col{display:grid;gap:14px}
+.col.tools,.col.prev{position:sticky;top:16px;max-height:calc(100vh - 32px);overflow:auto;padding-right:4px}
+.col.tools::-webkit-scrollbar,.col.prev::-webkit-scrollbar{width:6px}
+
+.card{background:linear-gradient(165deg,var(--ink-2),#170f28);border:1px solid rgba(255,158,199,.24);
+  border-radius:18px;padding:15px;box-shadow:0 22px 50px rgba(0,0,0,.42);display:grid;gap:11px}
+.card h3{font-family:var(--display);font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--sakura);display:flex;align-items:center;gap:8px}
+.card h3 .jp{font-family:var(--jp);color:var(--muted);font-weight:400;letter-spacing:.2em;font-size:11px}
+.cap{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.divider{height:1px;background:var(--line)}
+
+/* чипы */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{font-family:var(--body);font-size:12px;font-weight:500;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--text);border-radius:999px;padding:6px 12px;cursor:pointer;transition:.18s;white-space:nowrap}
+.chip:hover{border-color:var(--sakura);color:var(--sakura);transform:translateY(-2px);background:rgba(255,158,199,.08)}
+.chip.hot{border-color:rgba(255,79,110,.4);color:#ffd0d9}
+.chip.hot:hover{border-color:var(--hot);background:rgba(255,79,110,.12);color:#fff}
+.chip.gold{border-color:rgba(255,200,92,.4);color:var(--gold)}
+.chip.gold:hover{background:rgba(255,200,92,.12);color:#fff}
+
+/* шаблоны — вертикальный список с превью-строкой */
+.tmpl{display:grid;gap:7px}
+.tmpl button{text-align:left;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:12px;
+  padding:10px 12px;cursor:pointer;transition:.2s;display:grid;gap:3px}
+.tmpl button:hover{border-color:rgba(255,158,199,.4);background:rgba(255,158,199,.06);transform:translateX(3px)}
+.tmpl button b{font-family:var(--display);font-weight:700;font-size:11.5px;letter-spacing:.02em;color:var(--text);display:flex;align-items:center;gap:7px}
+.tmpl button b .e{font-size:14px}
+.tmpl button span{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* эмодзи-пикер */
+.emoji{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}
+.emoji button{aspect-ratio:1;border:0;background:transparent;border-radius:8px;font-size:17px;cursor:pointer;transition:.15s;line-height:1}
+.emoji button:hover{background:rgba(255,158,199,.14);transform:scale(1.18)}
+
+/* черновики */
+.drafts{display:grid;gap:7px;max-height:200px;overflow:auto}
+.draft{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:11px;padding:8px 10px;cursor:pointer;transition:.18s;background:rgba(255,255,255,.02)}
+.draft:hover{border-color:rgba(255,158,199,.4);background:rgba(255,158,199,.06)}
+.draft.on{border-color:var(--hot);background:rgba(255,79,110,.1)}
+.draft .t{flex:1;min-width:0}
+.draft .t b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.draft .t span{font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+.draft .x{flex:none;width:22px;height:22px;border-radius:7px;border:0;background:transparent;color:var(--muted);cursor:pointer;font-size:13px}
+.draft .x:hover{background:rgba(255,79,110,.18);color:#fff}
+.draft-empty{font-family:var(--mono);font-size:10.5px;color:var(--muted);text-align:center;padding:8px}
+
+.btn{font-family:var(--display);font-weight:700;font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+  border:0;border-radius:11px;padding:11px;cursor:pointer;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-hot{background:var(--hot);color:#fff;box-shadow:0 8px 22px rgba(255,79,110,.35)}
+.btn-hot:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(255,79,110,.5)}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.btn-ghost:hover{color:var(--text);border-color:var(--sakura)}
+.btn-mint{background:var(--mint);color:#10332a;box-shadow:0 8px 22px rgba(111,227,193,.32)}
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── редактор: overlay-подсветка ── */
+.editor-wrap{position:relative}
+.editor-wrap .back,.editor-wrap textarea{
+  margin:0;border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+  font-family:var(--body);font-size:15px;line-height:1.62;letter-spacing:0;word-spacing:0;
+  white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;
+  width:100%;min-height:260px;tab-size:2;
+}
+.editor-wrap .back{position:absolute;inset:0;overflow:hidden;color:var(--text);background:rgba(255,255,255,.03);
+  pointer-events:none;z-index:1}
+.editor-wrap textarea{position:relative;z-index:2;resize:vertical;background:transparent;color:transparent;
+  caret-color:var(--sakura);outline:none;transition:border-color .2s,box-shadow .2s}
+.editor-wrap textarea:focus{border-color:var(--sakura);box-shadow:0 0 0 3px rgba(255,158,199,.16)}
+.editor-wrap textarea::placeholder{color:var(--muted)}
+/* токены подсветки */
+.tk-tag{color:var(--sakura);font-weight:600}
+.tk-mention{color:var(--sky);font-weight:600}
+.tk-link{color:var(--mint);text-decoration:underline}
+.tk-mark{background:rgba(255,200,92,.22);color:var(--gold);border-radius:4px;padding:0 2px}
+
+/* линейка счётчиков */
+.meters{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center}
+.meter{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.meter b{color:var(--text);font-size:13px}
+.meter.warn b{color:var(--gold)}
+.meter.bad b{color:var(--hot)}
+.fold-badge{font-family:var(--mono);font-size:10px;letter-spacing:.04em;border-radius:999px;padding:4px 10px;
+  border:1px solid var(--line);color:var(--muted)}
+.fold-badge.fold{border-color:rgba(255,200,92,.4);color:var(--gold);background:rgba(255,200,92,.08)}
+.fold-badge.full{border-color:rgba(111,227,193,.4);color:var(--mint);background:rgba(111,227,193,.08)}
+
+/* настройки картинки поста */
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.seg button{font-family:var(--display);font-weight:700;font-size:9.5px;letter-spacing:.02em;text-transform:uppercase;
+  padding:9px 4px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--muted);cursor:pointer;transition:.18s}
+.seg button:hover{border-color:rgba(255,158,199,.4);color:var(--text)}
+.seg button.on{background:linear-gradient(160deg,rgba(255,79,110,.22),rgba(255,158,199,.1));border-color:var(--hot);color:#fff}
+.field{display:grid;gap:5px}
+.field input[type=text]{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text);
+  border-radius:10px;padding:9px 11px;font-family:var(--body);font-size:13px;outline:none;transition:.2s}
+.field input[type=text]:focus{border-color:var(--sakura);box-shadow:0 0 0 3px rgba(255,158,199,.16)}
+.sw{display:flex;align-items:center;gap:9px;cursor:pointer;user-select:none;font-size:12px}
+.sw input{display:none}
+.sw .box{width:34px;height:19px;border-radius:999px;background:var(--ink-3);position:relative;flex:none;transition:.25s;border:1px solid var(--line)}
+.sw .box::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--muted);transition:.25s}
+.sw input:checked+.box{background:linear-gradient(90deg,var(--hot),var(--sakura));border-color:transparent}
+.sw input:checked+.box::after{left:17px;background:#fff}
+.accs{display:flex;gap:8px}
+.acc{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.2s}
+.acc:hover{transform:scale(1.12)}
+.acc.on{border-color:#fff;box-shadow:0 0 0 2px var(--hot)}
+
+/* мини-превью картинки в редакторе */
+.imgprev{position:relative;border-radius:12px;overflow:hidden;border:1px solid rgba(255,158,199,.28);aspect-ratio:1/1;background:#0e0a1c}
+.imgprev.r43{aspect-ratio:4/3}.imgprev.r45{aspect-ratio:4/5}
+.imgprev canvas{position:absolute;inset:0;width:100%;height:100%}
+.imgprev .tag{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+  color:var(--muted);background:rgba(14,10,28,.7);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+
+/* ── превью поста ВК ── */
+.prev-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.theme-sw{display:flex;gap:6px}
+.theme-sw button{font-family:var(--mono);font-size:10px;letter-spacing:.06em;border:1px solid var(--line);background:rgba(255,255,255,.03);
+  color:var(--muted);border-radius:999px;padding:5px 11px;cursor:pointer;transition:.18s}
+.theme-sw button.on{border-color:var(--hot);color:#fff;background:rgba(255,79,110,.14)}
+
+/* карточка поста — переменные темы */
+.post{border-radius:16px;overflow:hidden;border:1px solid var(--line);transition:.3s;
+  --p-bg:#fff; --p-text:#222; --p-meta:#818c99; --p-link:#2a5885; --p-line:#edeef0; --p-ico:#818c99; --p-chip:#f0f2f5}
+.post.dark{--p-bg:#222325; --p-text:#e1e3e6; --p-meta:#828a99; --p-link:#71aaeb; --p-line:#333538; --p-ico:#828a99; --p-chip:#2c2d30}
+.post{background:var(--p-bg);color:var(--p-text)}
+.post-top{display:flex;align-items:center;gap:11px;padding:13px 15px 11px}
+.post-ava{width:44px;height:44px;border-radius:50%;flex:none;display:grid;place-items:center;
+  background:linear-gradient(140deg,var(--sakura),var(--hot));font-family:var(--display);font-weight:900;font-size:18px;color:#fff;
+  box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.post-id b{display:block;font-size:13.5px;font-weight:600;color:var(--p-text)}
+.post-id span{font-size:11.5px;color:var(--p-meta)}
+.post-id .adv{color:var(--p-meta)}
+.post-more{margin-left:auto;color:var(--p-ico);font-size:18px;line-height:1;cursor:pointer}
+.post-body{padding:0 15px 12px;font-size:14px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;color:var(--p-text)}
+.post-body .tk-tag{color:var(--p-link)}
+.post-body .tk-mention{color:var(--p-link)}
+.post-body .tk-link{color:var(--p-link)}
+.post-body .tk-mark{background:rgba(255,200,92,.25);color:inherit}
+/* сворачивание */
+.post-body.folded{position:relative;max-height:150px;overflow:hidden}
+.post-body.folded::after{content:"";position:absolute;left:0;right:0;bottom:0;height:54px;
+  background:linear-gradient(transparent,var(--p-bg))}
+.post-fold{padding:0 15px 12px}
+.post-fold button{border:0;background:transparent;color:var(--p-link);font-family:var(--body);font-size:13.5px;
+  font-weight:500;cursor:pointer;padding:0}
+.post-fold button:hover{text-decoration:underline}
+.post-img{margin:0 0 4px;width:100%;display:block;background:#0e0a1c}
+.post-img canvas{width:100%;display:block}
+.post-img.hide{display:none}
+/* опрос-превью */
+.post-poll{margin:0 15px 12px;border:1px solid var(--p-line);border-radius:12px;padding:12px 13px}
+.post-poll h4{font-size:14px;font-weight:600;margin-bottom:9px;color:var(--p-text)}
+.poll-opt{position:relative;border:1px solid var(--p-line);border-radius:9px;padding:8px 11px;margin-bottom:7px;font-size:13px;
+  color:var(--p-text);overflow:hidden}
+.poll-opt .fill{position:absolute;inset:0;background:var(--p-chip);transform-origin:left;transform:scaleX(var(--w,0));transition:transform .8s cubic-bezier(.2,.8,.2,1)}
+.poll-opt span{position:relative}
+.poll-opt .pc{position:relative;float:right;color:var(--p-meta);font-family:var(--mono);font-size:11px}
+.post-poll .meta{font-size:11px;color:var(--p-meta);font-family:var(--mono)}
+/* футер поста */
+.post-foot{display:flex;align-items:center;gap:4px;padding:8px 11px;border-top:1px solid var(--p-line)}
+.pf-btn{display:flex;align-items:center;gap:6px;border:0;background:transparent;color:var(--p-ico);cursor:pointer;
+  border-radius:9px;padding:7px 10px;font-family:var(--body);font-size:13px;font-weight:500;transition:.15s}
+.pf-btn:hover{background:var(--p-chip)}
+.pf-btn svg{width:21px;height:21px;fill:currentColor}
+.pf-btn.liked{color:var(--hot)}
+.pf-views{margin-left:auto;display:flex;align-items:center;gap:5px;color:var(--p-meta);font-size:12.5px;font-family:var(--mono)}
+.pf-views svg{width:18px;height:18px;fill:currentColor}
+
+.export{display:grid;gap:8px}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translate(-50%,90px);z-index:300;
+  background:var(--ink-2);border:1px solid var(--sakura);color:var(--text);padding:13px 22px;border-radius:12px;
+  box-shadow:0 14px 34px rgba(0,0,0,.55);transition:transform .45s cubic-bezier(.2,.9,.3,1.2);font-size:14px}
+.toast.show{transform:translate(-50%,0)}
+
+/* измеритель строк */
+#measure{position:absolute;visibility:hidden;left:-9999px;top:0;white-space:pre-wrap;word-wrap:break-word;overflow-wrap:break-word;
+  font-family:var(--body);font-size:15px;line-height:1.62;padding:0 16px;border:1px solid transparent}
+
+@media(max-width:1180px){
+  .forge{grid-template-columns:1fr 360px}
+  .col.tools{position:static;max-height:none;grid-column:1 / -1;
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+  .col.tools .card{margin:0}
+}
+@media(max-width:860px){
+  .forge{grid-template-columns:1fr}
+  .col.tools{grid-template-columns:1fr}
+  .col.prev{position:static;max-height:none}
+  .forge-head{grid-template-columns:1fr}.fh-meta{justify-self:start;text-align:left}
+}
+</style>
+</head>
+<body>
+<canvas id="bg" aria-hidden="true"></canvas>
+<div id="measure" aria-hidden="true"></div>
+
+<div class="wrap">
+  <header class="forge-head">
+    <div>
+      <div class="fh-tag"><span class="bars"><i></i><i></i><i></i><i></i></span>// post forge <span class="jp">投稿工房</span></div>
+      <h1 class="fh-title">POST <em>FORGE</em> <span class="pen">✎</span></h1>
+      <p class="fh-sub">Редактор постов для <b>Club Anicoke</b>. Подсветка хештегов и ссылок на лету, шаблоны анонсов, генератор фирменной картинки и превью поста — ровно как в ленте ВК, со сворачиванием и футером.</p>
+    </div>
+    <div class="fh-meta">
+      <div class="fh-pill"><span class="dot"></span>черновики в браузере</div>
+      <div class="fh-pill">экспорт <b>текст + картинка</b></div>
+    </div>
+  </header>
+
+  <div class="forge">
+
+    <!-- ═══════ ЛЕВАЯ: ИНСТРУМЕНТЫ ═══════ -->
+    <div class="col tools">
+
+      <div class="card">
+        <h3>шаблоны <span class="jp">定型</span></h3>
+        <div class="tmpl" id="tmpl"></div>
+      </div>
+
+      <div class="card">
+        <h3>усилители <span class="jp">＋</span></h3>
+        <div class="chips" id="boost"></div>
+      </div>
+
+      <div class="card">
+        <h3>хештеги клуба <span class="jp">#</span></h3>
+        <div class="chips" id="tags"></div>
+      </div>
+
+      <div class="card">
+        <h3>эмодзи <span class="jp">絵</span></h3>
+        <div class="emoji" id="emoji"></div>
+      </div>
+
+      <div class="card">
+        <h3>черновики <span class="jp">下書</span></h3>
+        <div class="drafts" id="drafts"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="saveDraft">💾 сохранить</button>
+          <button class="btn btn-ghost" id="newPost">＋ новый</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════ ЦЕНТР: РЕДАКТОР ═══════ -->
+    <div class="col edit">
+
+      <div class="card">
+        <h3>текст поста <span class="jp">本文</span></h3>
+        <div class="editor-wrap">
+          <div class="back" id="back"></div>
+          <textarea id="txt" spellcheck="false" placeholder="Напиши пост… #хештеги и ссылки подсветятся сами ✨"></textarea>
+        </div>
+        <div class="meters">
+          <div class="meter" id="m-chars">символов <b>0</b></div>
+          <div class="meter" id="m-words">слов <b>0</b></div>
+          <div class="meter" id="m-tags">хештегов <b>0</b></div>
+          <div class="meter" id="m-lines">строк <b>0</b></div>
+          <span class="fold-badge full" id="foldBadge">поместится целиком</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>картинка поста <span class="jp">画像</span></h3>
+        <div class="seg" id="imgComp">
+          <button data-c="announce" class="on">анонс</button>
+          <button data-c="quote">цитата</button>
+          <button data-c="poster">афиша</button>
+          <button data-c="minimal">минимал</button>
+        </div>
+        <div class="seg three" id="imgRatio">
+          <button data-r="1" class="on">1:1</button>
+          <button data-r="43">4:3</button>
+          <button data-r="45">4:5</button>
+        </div>
+        <div class="seg" id="imgMood"></div>
+        <div class="field"><span class="cap">заголовок на картинке</span><input type="text" id="imgTitle" value="КАРАОКЕ-БАТТЛ"></div>
+        <div class="field"><span class="cap">подзаголовок / дата</span><input type="text" id="imgSub" value="суббота · 19:00 мск"></div>
+        <div class="field"><span class="cap">цитата (для композиции «цитата»)</span><input type="text" id="imgQuote" value="опенинги мы не скипаем"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div class="accs" id="imgAcc">
+            <div class="acc on" data-c="#ff9ec7" style="background:#ff9ec7"></div>
+            <div class="acc" data-c="#ffc85c" style="background:#ffc85c"></div>
+            <div class="acc" data-c="#6fe3c1" style="background:#6fe3c1"></div>
+            <div class="acc" data-c="#8ecbff" style="background:#8ecbff"></div>
+          </div>
+          <label class="sw"><input type="checkbox" id="imgOn" checked><span class="box"></span>прикрепить картинку</label>
+        </div>
+        <div class="imgprev" id="imgPrev"><span class="tag">превью картинки</span><canvas id="imgCanvas"></canvas></div>
+      </div>
+
+      <div class="card">
+        <h3>опрос в посте <span class="jp">投票</span></h3>
+        <label class="sw" style="margin-bottom:2px"><input type="checkbox" id="pollOn"><span class="box"></span>добавить превью опроса</label>
+        <div class="field"><span class="cap">вопрос</span><input type="text" id="pollQ" value="Манга или аниме — что лучше?"></div>
+        <div class="field"><span class="cap">варианты (через / )</span><input type="text" id="pollOpts" value="Манга, рулит / Аниме, топ / Смотрю и то и то"></div>
+      </div>
+
+    </div>
+
+    <!-- ═══════ ПРАВАЯ: ПРЕВЬЮ + ЭКСПОРТ ═══════ -->
+    <div class="col prev">
+
+      <div class="card">
+        <div class="prev-head">
+          <h3>как в ленте <span class="jp">プレビュー</span></h3>
+          <div class="theme-sw" id="themeSw">
+            <button data-t="light" class="on">светлая</button>
+            <button data-t="dark">тёмная</button>
+          </div>
+        </div>
+
+        <div class="post" id="post">
+          <div class="post-top">
+            <div class="post-ava">A</div>
+            <div class="post-id"><b>Club Anicoke</b><span>сегодня в 19:00 · <span class="adv">реклама</span></span></div>
+            <div class="post-more">⋯</div>
+          </div>
+          <div class="post-body" id="postBody"></div>
+          <div class="post-fold" id="postFold" style="display:none"><button id="foldBtn">Показать полностью</button></div>
+          <div class="post-img" id="postImg"><canvas id="postImgCanvas"></canvas></div>
+          <div class="post-poll" id="postPoll" style="display:none">
+            <h4 id="pollQOut"></h4>
+            <div id="pollOptsOut"></div>
+            <div class="meta" id="pollMeta"></div>
+          </div>
+          <div class="post-foot">
+            <button class="pf-btn" id="likeBtn" aria-label="нравится">
+              <svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.2C.4 8.5 2 5 5.3 5c2 0 3.3 1.1 4.2 2.3l.5.7.5-.7C11.4 6.1 12.7 5 14.7 5 18 5 19.6 8.5 22 11.8 19.5 16.4 12 21 12 21z"/></svg>
+              <span id="likeN">128</span></button>
+            <button class="pf-btn" aria-label="комментарии">
+              <svg viewBox="0 0 24 24"><path d="M12 3C6.5 3 2 6.4 2 10.6c0 2.4 1.4 4.5 3.6 5.9L4.5 21l4.3-2.2c1 .2 2.1.4 3.2.4 5.5 0 10-3.4 10-7.6S17.5 3 12 3z"/></svg>
+              <span>24</span></button>
+            <button class="pf-btn" aria-label="поделиться">
+              <svg viewBox="0 0 24 24"><path d="M3 11l18-8-8 18-2-7-8-3z"/></svg>
+              <span>9</span></button>
+            <div class="pf-views">
+              <svg viewBox="0 0 24 24"><path d="M12 5C5 5 1 12 1 12s4 7 11 7 11-7 11-7-4-7-11-7zm0 11a4 4 0 110-8 4 4 0 010 8z"/></svg>
+              <span>3.4K</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>публикация <span class="jp">公開</span></h3>
+        <div class="export">
+          <button class="btn btn-hot" id="copyText">📋 скопировать текст</button>
+          <div class="btn-row">
+            <button class="btn btn-ghost" id="dlImg">⬇ картинку</button>
+            <button class="btn btn-ghost" id="dlPrev">⬇ превью поста</button>
+          </div>
+        </div>
+        <div class="cap" style="margin-top:2px">текст → в поле поста ВК · картинку → прикрепить медиа · превью — для согласования</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+
+/* ═══════════ ambient-фон ═══════════ */
+(()=>{const cv=$('#bg'),cx=cv.getContext('2d');let W,H,ps=[],st=[];
+  const C=['#ffb7d5','#ff9ec7','#ffd3e4'];
+  function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight;
+    st=Array.from({length:50},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.4,p:Math.random()*6.28}));}
+  addEventListener('resize',rs);rs();
+  for(let i=0;i<20;i++)ps.push({x:Math.random()*W,y:Math.random()*H,s:5+Math.random()*7,vy:.4+Math.random()*.9,ph:Math.random()*6.28,sw:.4+Math.random()*.7,rot:Math.random()*6.28,vr:(Math.random()-.5)*.04,c:C[Math.random()*3|0],a:.3+Math.random()*.4});
+  function petal(p){cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.globalAlpha=p.a;cx.fillStyle=p.c;
+    cx.beginPath();const s=p.s;cx.moveTo(0,0);cx.bezierCurveTo(s*.6,-s*.5,s*1.1,-s*.1,s*.55,s*.5);
+    cx.bezierCurveTo(s*.2,s*.75,-s*.1,s*.4,0,0);cx.fill();cx.restore();}
+  (function loop(){cx.clearRect(0,0,W,H);
+    for(const s of st){s.p+=.02;cx.globalAlpha=.12+Math.abs(Math.sin(s.p))*.5;cx.fillStyle='#fff';cx.beginPath();cx.arc(s.x,s.y,s.r,0,6.28);cx.fill();}
+    cx.globalAlpha=1;for(const p of ps){p.ph+=.02;p.y+=p.vy;p.x+=Math.sin(p.ph)*p.sw+.2;p.rot+=p.vr;if(p.y>H+20){p.y=-20;p.x=Math.random()*W;}petal(p);}
+    requestAnimationFrame(loop);})();
+})();
+
+/* ═══════════ данные ═══════════ */
+const TEMPLATES=[
+  {e:'🎤',n:'караоке-баттл',t:`🎤 КАРАОКЕ-БАТТЛ уже в эту субботу!\n\nСобираемся в 19:00 мск, поём опенинги сезона и спорим, кто вытянул высокую ноту в «Gurenge». Голос не важен — важна отвага и текст на ромадзи 😉\n\nЗаходи, микрофон свободен →\n\n#ClubAnicoke #караоке #опенинги`},
+  {e:'📺',n:'совместный просмотр',t:`📺 СМОТРИМ ВМЕСТЕ\n\nВ субботу разбираем онгоинг сезона — синхронно, с паузами на мемы и теории. Спойлеров не будет, обещаем.\n\nСтарт в 19:00 мск, ссылка на звонок — за день до встречи.\n\nКакой тайтл берём? пиши в комменты 👇\n\n#ClubAnicoke #просмотр #онгоинги`},
+  {e:'🗓️',n:'дайджест недели',t:`🗓️ ДАЙДЖЕСТ НЕДЕЛИ в Club Anicoke\n\n✦ посмотрели 3 серии онгоинга\n✦ провели караоке-баттл (победил Рэн 🏆)\n в чате 200+ мемов, лучший — в закрепе\n\nСпасибо, что вы с нами. Дальше — больше.\n\n#ClubAnicoke #дайджест`},
+  {e:'⚔️',n:'батл: манга vs аниме',t:`⚔️ ВЕЧНЫЙ СПОР\n\nМанга или аниме — что лучше? Мы снова открываем голосование и принимаем аргументы (скриншоты приветствуются, спойлеры — нет).\n\nГолосуй в опросе ниже 👇\n\n#ClubAnicoke #манга #аниме`},
+  {e:'👋',n:'приветственный',t:`👋 ДОБРО ПОЖАЛОВАТЬ в Club Anicoke!\n\nМы — уютный аниме-клуб во ВКонтакте. Смотрим тайтлы, поём опенинги, спорим о концовках и не осуждаем за короткий тай-лист.\n\nНапиши в комменты: что смотришь сейчас? начнём знакомство ✨\n\n#ClubAnicoke #привет`},
+];
+const BOOSTS=[
+  {l:'👇 призыв',t:'\n\nА ты что думаешь? пиши в комменты 👇'},
+  {l:'✨ разделитель',t:'\n✦ ✦ \n'},
+  {l:'# теги клуба',t:'\n\n#ClubAnicoke #аниме'},
+  {l:'🔥 срочность',t:' мест мало, не пропусти →'},
+  {l:'💬 вопрос',t:'\n\nвопрос на засыпку: любимый опенинг всех времён?'},
+];
+const TAGS=['#ClubAnicoke','#аниме','#караоке','#опенинги','#онгоинги','#косплей','#манга','#мемы','#просмотр'];
+const EMOJIS=['🌸','','📺','','✨','🔥','💬','👇','🎵','🎶','🏆','️','👋','💖','🍜','🎭','','😤','😉','👀','🙌','','🌙','⭐','🎮','','🍵','🥢','💫','🫶','😭','🥹'];
+const MOODS={
+  sunset:{name:'закат',bg:[[0,'#3a1230'],[.5,'#241029'],[1,'#150f24']],sun:{x:.8,y:.32,r:.7,c0:'#ff8fa0',c1:'#e63956',c2:'#b81f42'}},
+  night :{name:'ночь', bg:[[0,'#160f2c'],[1,'#0d0a1c']],sun:{x:.8,y:.3,r:.6,c0:'rgba(143,203,255,.5)',c1:'rgba(111,227,193,.16)',c2:'transparent'}},
+  sakura:{name:'сакура',bg:[[0,'#4a1c3c'],[.5,'#341634'],[1,'#241634']],sun:{x:.8,y:.34,r:.7,c0:'#ffc2dd',c1:'#ff7da6',c2:'#d96f9c'}},
+  neon  :{name:'неон', bg:[[0,'#120c22'],[1,'#0a0716']],sun:{x:.8,y:.4,r:.65,c0:'rgba(111,227,193,.42)',c1:'rgba(255,79,110,.18)',c2:'transparent'}},
+};
+
+/* ═══════════ состояние ═══════════ */
+const S={imgComp:'announce',imgRatio:'1',imgMood:'sunset',imgAcc:'#ff9ec7',imgOn:true,
+  imgTitle:'КАРАОКЕ-БАТТЛ',imgSub:'суббота · 19:00 мск',imgQuote:'опенинги мы не скипаем',
+  pollOn:false,pollQ:'Манга или аниме — что лучше?',pollOpts:'Манга, рулит / Аниме, топ / Смотрю и то и то',
+  theme:'light',folded:true,draftId:null};
+
+const txt=$('#txt'), back=$('#back'), measure=$('#measure');
+
+/* ═══════════ генератор Юки (консистентность серии) ═══════════ */
+const YUKI={pal:{hair:['#ffd0e6','#ff9ec7','#cf6494'],skin:'#ffe7d8',skinSh:'#efbca2',cloth:['#ff6482','#c52f4d'],accent:'#ffd27a',eye:'#8a52e0'},hair:'long',acc:'catears',hp:true,eye2:'#39d0c8',scarf:true,turn:1};
+let _uid=0;
+function chibiSVG(o){
+  const id='y'+(_uid++),p=o.pal,[hL,hM,hD]=p.hair,[cL,cD]=p.cloth,eyeA=p.eye,eyeB=o.eye2||p.eye;
+  const dx=(o.turn||0)*6, sxL=o.turn>0?.82:o.turn<0?1.04:1, sxR=o.turn<0?.82:o.turn>0?1.04:1;
+  const defs=`<defs>
+   <linearGradient id="${id}_h" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${hL}"/><stop offset=".45" stop-color="${hM}"/><stop offset="1" stop-color="${hD}"/></linearGradient>
+   <linearGradient id="${id}_hd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hM}"/><stop offset="1" stop-color="${hD}"/></linearGradient>
+   <radialGradient id="${id}_sk" cx=".38" cy=".32" r=".82"><stop offset="0" stop-color="#fff2e8"/><stop offset=".5" stop-color="${p.skin}"/><stop offset="1" stop-color="${p.skinSh}"/></radialGradient>
+   <linearGradient id="${id}_cl" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="${cL}"/><stop offset="1" stop-color="${cD}"/></linearGradient>
+   <linearGradient id="${id}_ac" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${p.accent}"/><stop offset="1" stop-color="${cD}"/></linearGradient>
+   <linearGradient id="${id}_sc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${p.accent}"/><stop offset=".5" stop-color="${hM}"/><stop offset="1" stop-color="${cD}"/></linearGradient>
+   <radialGradient id="${id}_eye0" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="${eyeA}"/><stop offset=".55" stop-color="${eyeA}"/><stop offset="1" stop-color="#140d24"/></radialGradient>
+   <radialGradient id="${id}_eye1" cx=".4" cy=".3" r=".85"><stop offset="0" stop-color="${eyeB}"/><stop offset=".55" stop-color="${eyeB}"/><stop offset="1" stop-color="#140d24"/></radialGradient>
+   <radialGradient id="${id}_bl" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff7d9c" stop-opacity=".55"/><stop offset="1" stop-color="#ff7d9c" stop-opacity="0"/></radialGradient>
+   <radialGradient id="${id}_ear" cx=".5" cy=".7" r=".7"><stop offset="0" stop-color="#ff8fb0"/><stop offset="1" stop-color="#d96f9c"/></radialGradient>
+   <radialGradient id="${id}_hp" cx=".34" cy=".3" r=".85"><stop offset="0" stop-color="#4a4260"/><stop offset=".5" stop-color="#2a2438"/><stop offset="1" stop-color="#100c1a"/></radialGradient>
+  </defs>`;
+  const ears=`<g><path d="M50,42 C44,16 52,8 60,14 C62,26 60,36 58,44 Z" fill="url(#${id}_h)"/><path d="M52,38 C49,22 54,16 58,20 C59,28 58,34 56,40 Z" fill="url(#${id}_ear)"/></g><g><path d="M90,42 C96,16 88,8 80,14 C78,26 80,36 82,44 Z" fill="url(#${id}_h)"/><path d="M88,38 C91,22 86,16 82,20 C81,28 82,34 84,40 Z" fill="url(#${id}_ear)"/></g>`;
+  const hpBand=`<path d="M41,54 C44,22 96,22 99,54" stroke="url(#${id}_hp)" stroke-width="7.5" fill="none" stroke-linecap="round"/><path d="M46,40 C52,25 88,25 94,40" stroke="#fff" stroke-width="1.6" fill="none" opacity=".3" stroke-linecap="round"/>`;
+  const back2=`<path d="M40,56 C36,30 104,30 100,56 C100,72 96,84 92,92 L48,92 C44,84 40,72 40,56 Z" fill="url(#${id}_hd)"/>`;
+  const long=`<path d="M42,58 C30,92 30,134 44,160 C40,128 44,96 52,72 Z" fill="url(#${id}_hd)"/><path d="M44,60 C36,90 38,124 48,150 C46,120 50,92 56,72 Z" fill="url(#${id}_h)" opacity=".9"/><path d="M98,58 C110,92 110,134 96,160 C100,128 96,96 88,72 Z" fill="url(#${id}_hd)"/><path d="M96,60 C104,90 102,124 92,150 C94,120 90,92 84,72 Z" fill="url(#${id}_h)" opacity=".9"/>`;
+  const tail=`<g><path d="M92,150 C116,150 130,124 124,98 C122,86 112,84 110,96 C113,116 104,134 90,140 Z" fill="url(#${id}_hd)"/><path d="M124,98 C122,86 112,84 110,96 C111,104 114,108 118,108 C122,108 125,104 124,98 Z" fill="${hL}"/></g>`;
+  const leg=(x)=>`<g><path d="M${x},148 C${x-2},166 ${x-2},182 ${x},196 C${x+4},198 ${x+8},196 ${x+8},190 C${x+7},178 ${x+7},162 ${x+8},150 Z" fill="url(#${id}_sk)"/><path d="M${x-4},192 q-3,9 7,10 q13,1 13,-6 q0,-6 -9,-7 q-8,-1 -11,3z" fill="url(#${id}_cl)"/></g>`;
+  const torso=`<g><path d="M50,92 C48,90 92,90 90,92 C97,114 99,134 94,150 C82,157 58,157 46,150 C41,134 43,114 50,92 Z" fill="url(#${id}_cl)"/><path d="M58,92 L70,106 L82,92 Z" fill="${p.accent}"/><g transform="translate(70,124)" fill="${p.accent}"><path d="M0,-6 C2,-2 6,-2 4,1 C6,4 2,4 0,7 C-2,4 -6,4 -4,1 C-6,-2 -2,-2 0,-6 Z"/></g></g>`;
+  const armL=`<g><path d="M48,96 C38,102 35,120 40,134 C44,138 49,136 48,129 C46,118 48,106 53,99 Z" fill="url(#${id}_cl)"/><circle cx="43" cy="134" r="6" fill="url(#${id}_sk)"/></g>`;
+  const armR=`<g><path d="M92,96 C104,86 110,64 105,46 C100,40 93,43 94,52 C97,66 92,80 84,90 Z" fill="url(#${id}_cl)"/><circle cx="104" cy="44" r="7" fill="url(#${id}_sk)"/></g>`;
+  const scarf=`<g><path d="M62,98 C58,112 56,128 60,140 C64,142 67,140 66,134 C64,122 65,110 68,100 Z" fill="url(#${id}_sc)"/><path d="M78,98 C82,112 84,128 80,140 C76,142 73,140 74,134 C76,122 75,110 72,100 Z" fill="url(#${id}_sc)"/><path d="M48,90 C58,98 82,98 92,90 C94,96 92,102 88,104 C76,110 64,110 52,104 C48,102 46,96 48,90 Z" fill="url(#${id}_sc)"/></g>`;
+  const neck=`<path d="M62,82 h16 v12 q-8,6 -16,0z" fill="url(#${id}_sk)"/>`;
+  const face=`<path d="M44,60 C44,34 96,34 96,60 C96,82 84,94 70,94 C56,94 44,82 44,60 Z" fill="url(#${id}_sk)"/><path d="M46,58 C46,46 52,40 60,38 C50,42 47,52 48,64 C48,72 50,80 56,86 C49,80 46,70 46,58 Z" fill="#fff" opacity=".4"/>`;
+  const front=`<path d="M40,56 C38,28 102,28 100,56 C100,42 92,34 84,32 C90,44 84,50 78,42 C76,54 68,44 64,54 C60,44 52,54 50,42 C44,50 38,44 44,32 C48,34 40,42 40,56 Z" fill="url(#${id}_h)"/><path d="M50,36 C52,50 56,56 58,46 C58,56 62,58 64,48 C64,58 68,58 70,48 C72,58 76,56 76,44 C78,56 82,50 82,40 C74,30 56,30 50,36 Z" fill="url(#${id}_h)"/><path d="M46,32 C58,24 82,24 94,34 C82,29 58,29 46,37 Z" fill="#fff" opacity=".34"/>`;
+  const cup=(px,rot)=>`<g transform="rotate(${rot} ${px} 64)"><ellipse cx="${px}" cy="64" rx="10.5" ry="14.5" fill="url(#${id}_hp)"/><ellipse cx="${px}" cy="64" rx="7.4" ry="11" fill="none" stroke="${p.accent}" stroke-width="1.6" opacity=".85"/><ellipse cx="${px}" cy="64" rx="5" ry="8.4" fill="#0c0814"/></g>`;
+  const eye=(ex,grad,sx)=>{const w=sx!==1?`translate(${ex},0) scale(${sx},1) translate(${-ex},0)`:'';
+    const g=`<g><ellipse cx="${ex}" cy="65" rx="6.3" ry="7.7" fill="url(#${grad})"/><ellipse cx="${ex}" cy="65" rx="2.8" ry="3.8" fill="#120b22"/><circle cx="${ex+2.3}" cy="61" r="2.3" fill="#fff"/><circle cx="${ex-2.4}" cy="68.4" r="1.2" fill="#fff" opacity=".85"/><path d="M${ex-9.5},57 q9.5,-7 19,0" stroke="#1d1430" stroke-width="3" fill="none" stroke-linecap="round"/></g>`;
+    return w?`<g transform="${w}">${g}</g>`:g;};
+  const feat=`<g transform="translate(${dx},0)">${eye(58,id+'_eye0',sxL)}${eye(82,id+'_eye1',sxR)}<ellipse cx="52" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/><ellipse cx="88" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/><path d="M63,79 q7,8 14,0 q-2,7 -7,7 q-5,0 -7,-7z" fill="#9c2740"/></g>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="240" viewBox="0 0 140 240">${defs}<ellipse cx="70" cy="232" rx="30" ry="6" fill="rgba(0,0,0,.35)"/>${tail}${back2}${long}${hpBand}${ears}${leg(56)}${leg(64)}${torso}${armL}${armR}${neck}${scarf}${face}${front}${cup(40,-8)}${cup(100,8)}${feat}</svg>`;
+}
+let yukiImg=null;
+function loadYuki(){return new Promise(res=>{const img=new Image();img.onload=()=>{yukiImg=img;res();};img.onerror=()=>res();
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(chibiSVG(YUKI));});}
+
+function rr(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function rng(seed){let s=seed>>>0;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function sakuraPath(c,s){c.beginPath();for(let i=0;i<5;i++){const a=-Math.PI/2+i*2*Math.PI/5;c.moveTo(0,0);
+  c.bezierCurveTo(Math.cos(a-.5)*s*.5,Math.sin(a-.5)*s*.5,Math.cos(a-.25)*s,Math.sin(a-.25)*s,Math.cos(a)*s,Math.sin(a)*s);
+  c.bezierCurveTo(Math.cos(a+.25)*s,Math.sin(a+.25)*s,Math.cos(a+.5)*s*.5,Math.sin(a+.5)*s*.5,0,0);}c.closePath();}
+
+/* ═══════════ подсветка текста (overlay) ═══════════ */
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function highlight(raw){
+  // порядок важен: сначала ссылки, потом теги/упоминания, потом плейсхолдеры в {{ }}
+  let s=esc(raw);
+  s=s.replace(/(https?:\/\/[^\s<]+)/g,'<span class="tk-link">$1</span>');
+  s=s.replace(/(^|\s)(#[\p{L}\p{N}_]+)/gu,'$1<span class="tk-tag">$2</span>');
+  s=s.replace(/(^|\s)(@[\p{L}\p{N}_\.]+)/gu,'$1<span class="tk-mention">$2</span>');
+  s=s.replace(/\{\{([^}]+)\}\}/g,'<span class="tk-mark">{{$1}}</span>');
+  return s+'\n'; // хвостовой \n чтобы последняя строка не слипалась
+}
+function paintBack(){back.innerHTML=highlight(txt.value);}
+
+/* ═══════════ счётчики + сворачивание ═══════════ */
+function countLines(){
+  measure.style.width=txt.clientWidth+'px';
+  measure.textContent=txt.value||' ';
+  const lh=parseFloat(getComputedStyle(measure).lineHeight);
+  return Math.max(1,Math.round(measure.scrollHeight/lh));
+}
+function updateMeters(){
+  const v=txt.value;
+  const chars=v.length, words=(v.trim().match(/[\p{L}\p{N}]+/gu)||[]).length;
+  const tags=(v.match(/(^|\s)#[\p{L}\p{N}_]+/gu)||[]).length;
+  const lines=countLines();
+  $('#m-chars').innerHTML='символов <b>'+chars+'</b>';
+  $('#m-words').innerHTML='слов <b>'+words+'</b>';
+  $('#m-tags').innerHTML='хештегов <b>'+tags+'</b>';
+  $('#m-lines').innerHTML='строк <b>'+lines+'</b>';
+  $('#m-chars').className='meter'+(chars>2000?' bad':chars>1500?' warn':'');
+  // эвристика сворачивания ВК: ~6 строк или ~240 символов
+  const willFold = lines>6 || chars>240;
+  const fb=$('#foldBadge');
+  fb.className='fold-badge '+(willFold?'fold':'full');
+  fb.textContent=willFold?'в ленте свернётся':'поместится целиком';
+  S._willFold=willFold;
+  renderPost();
+}
+
+/* ═══════════ превью поста ═══════════ */
+function renderPost(){
+  const body=$('#postBody');
+  body.innerHTML=highlight(txt.value).replace(/\n$/,'');
+  const fold=$('#postFold');
+  if(S._willFold && S.folded){body.classList.add('folded');fold.style.display='';}
+  else{body.classList.remove('folded');fold.style.display='none';}
+  // картинка
+  const pi=$('#postImg');
+  if(S.imgOn){pi.classList.remove('hide');drawPostImg($('#postImgCanvas'),postDims());}
+  else pi.classList.add('hide');
+  // опрос
+  const pp=$('#postPoll');
+  if(S.pollOn){pp.style.display='';renderPoll();}else pp.style.display='none';
+}
+$('#foldBtn').onclick=()=>{S.folded=false;renderPost();};
+
+function renderPoll(){
+  $('#pollQOut').textContent=S.pollQ;
+  const opts=S.pollOpts.split('/').map(s=>s.trim()).filter(Boolean);
+  const r=rng(opts.length*7+3);const raw=opts.map(()=>10+Math.floor(r()*90));
+  const sum=raw.reduce((a,b)=>a+b,0);
+  const out=$('#pollOptsOut');out.innerHTML='';
+  opts.forEach((o,i)=>{const pc=Math.round(raw[i]/sum*100);
+    const d=document.createElement('div');d.className='poll-opt';d.style.setProperty('--w',0);
+    d.innerHTML=`<span class="fill"></span><span>${esc(o)}</span><span class="pc">${pc}%</span>`;
+    out.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>d.querySelector('.fill').style.transform='scaleX('+pc/100+')'));});
+  $('#pollMeta').textContent=(sum*3+12)+' голосов · анонимно';
+}
+
+/* ═══════════ генератор картинки поста ═══════════ */
+function postDims(){return S.imgRatio==='43'?[1200,900]:S.imgRatio==='45'?[1080,1350]:[1200,1200];}
+function drawPostImg(canvas,dims){
+  const [W,H]=dims;canvas.width=W;canvas.height=H;const c=canvas.getContext('2d');
+  const m=MOODS[S.imgMood],AC=S.imgAcc;
+  const g=c.createLinearGradient(0,0,W*.3,H);m.bg.forEach(s=>g.addColorStop(s[0],s[1]));c.fillStyle=g;c.fillRect(0,0,W,H);
+  // звёзды
+  const r=rng(7);c.fillStyle='#fff';for(let i=0;i<70;i++){c.globalAlpha=.12+r()*.6;c.beginPath();c.arc(r()*W,r()*H,r()*1.6+.4,0,6.28);c.fill();}c.globalAlpha=1;
+  // солнце
+  if(m.sun){const sx=m.sun.x*W,sy=m.sun.y*H,sr=m.sun.r*Math.min(W,H);
+    const rg=c.createRadialGradient(sx,sy,0,sx,sy,sr);rg.addColorStop(0,m.sun.c0);rg.addColorStop(.6,m.sun.c1);rg.addColorStop(1,m.sun.c2);
+    c.fillStyle=rg;c.beginPath();c.arc(sx,sy,sr,0,6.28);c.fill();}
+  // лепестки
+  const C=['#ffb7d5','#ff9ec7','#ffd3e4','#ff8fb8'];const rr2=rng(42);
+  for(let i=0;i<40;i++){const x=rr2()*W,y=rr2()*H,s=8+rr2()*16,rot=rr2()*6.28;c.save();c.translate(x,y);c.rotate(rot);c.globalAlpha=.3+rr2()*.45;c.fillStyle=C[rr2()*4|0];
+    c.beginPath();c.moveTo(0,0);c.bezierCurveTo(s*.6,-s*.5,s*1.1,-s*.1,s*.55,s*.5);c.bezierCurveTo(s*.2,s*.75,-s*.1,s*.4,0,0);c.fill();c.restore();}c.globalAlpha=1;
+  // виньетка
+  const vg=c.createRadialGradient(W*.45,H*.5,Math.min(W,H)*.2,W*.45,H*.5,Math.max(W,H)*.75);
+  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(8,5,16,.55)');c.fillStyle=vg;c.fillRect(0,0,W,H);
+
+  const comp=S.imgComp, pad=W*.08;
+  c.textBaseline='alphabetic';
+  if(comp==='announce'){
+    c.textAlign='left';c.fillStyle=AC;c.font=`500 ${H*.04}px 'JetBrains Mono',monospace`;c.fillText('// club anicoke · анонс',pad,H*.16);
+    wrapText(c,S.imgTitle.toUpperCase(),pad,H*.34,W*.62,H*.13,`900 ${H*.13}px 'Unbounded',sans-serif`,'#fff',true);
+    c.fillStyle='rgba(246,241,251,.85)';c.font=`600 ${H*.05}px 'Golos Text',sans-serif`;c.fillText(S.imgSub,pad,H*.62);
+    // плашка-кнопка
+    c.fillStyle=AC;rr(c,pad,H*.70,W*.42,H*.10,H*.05);c.fill();
+    c.fillStyle='#1a0e16';c.font=`700 ${H*.045}px 'Unbounded',sans-serif`;c.textAlign='center';c.fillText('ПОДРОБНЕЕ →',pad+W*.21,H*.765);
+    if(yukiImg){const hh=H*.8,ww=hh*(140/240);c.drawImage(yukiImg,18,30,104,150,W-pad-ww,H*.12,ww,hh);}
+  }
+  else if(comp==='quote'){
+    c.fillStyle=AC;c.font=`900 ${H*.4}px 'Unbounded',sans-serif`;c.textAlign='left';c.globalAlpha=.25;c.fillText('“',pad*.6,H*.42);c.globalAlpha=1;
+    wrapText(c,S.imgQuote,pad,H*.5,W*.84,H*.1,`700 ${H*.085}px 'Golos Text',sans-serif`,'#fff',false);
+    c.fillStyle=AC;c.font=`600 ${H*.045}px 'JetBrains Mono',monospace`;c.fillText('— '+S.imgSub,pad,H*.78);
+    if(yukiImg){const hh=H*.34,ww=hh*(140/240);c.drawImage(yukiImg,24,30,92,150,W-pad-ww,H*.62,ww,hh);}
+  }
+  else if(comp==='poster'){
+    // дата-плашка слева
+    const dateParts=S.imgSub.split('·').map(s=>s.trim());
+    c.fillStyle='rgba(14,10,28,.5)';rr(c,pad,H*.16,W*.34,H*.34,W*.03);c.fill();
+    c.strokeStyle=AC;c.lineWidth=Math.max(2,W*.004);rr(c,pad,H*.16,W*.34,H*.34,W*.03);c.stroke();
+    c.textAlign='center';c.fillStyle=AC;c.font=`900 ${H*.16}px 'Unbounded',sans-serif`;c.fillText(dateParts[0]||'22',pad+W*.17,H*.34);
+    c.fillStyle='#fff';c.font=`600 ${H*.05}px 'Golos Text',sans-serif`;c.fillText((dateParts[1]||'авг').toUpperCase(),pad+W*.17,H*.44);
+    c.textAlign='left';wrapText(c,S.imgTitle.toUpperCase(),W*.46,H*.30,W*.46,H*.1,`900 ${H*.095}px 'Unbounded',sans-serif`,'#fff',true);
+    c.fillStyle='rgba(246,241,251,.8)';c.font=`500 ${H*.045}px 'Golos Text',sans-serif`;c.fillText('club anicoke · онлайн',W*.46,H*.52);
+    if(yukiImg){const hh=H*.5,ww=hh*(140/240);c.drawImage(yukiImg,20,30,100,150,W*.5-ww*.5,H*.58,ww,hh);}
+  }
+  else if(comp==='minimal'){
+    c.textAlign='center';
+    c.save();c.translate(W*.5,H*.42);c.fillStyle=AC;c.globalAlpha=.9;
+    for(let i=0;i<4;i++){c.save();c.rotate(i*Math.PI/2+Math.PI/4);c.translate(0,-H*.16);sakuraPath(c,H*.05);c.fill();c.restore();}
+    c.restore();c.globalAlpha=1;
+    c.fillStyle='#fff';c.font=`900 ${H*.12}px 'Unbounded',sans-serif`;c.fillText('CLUB',W*.5,H*.40);
+    c.lineWidth=Math.max(2,W*.006);c.strokeStyle=AC;c.strokeText('ANICOKE',W*.5,H*.54);
+    c.fillStyle=AC;c.font=`500 ${H*.04}px 'JetBrains Mono',monospace`;c.fillText(S.imgSub.toUpperCase(),W*.5,H*.66);
+  }
+  // нижняя лента-хештег
+  c.textAlign='left';c.fillStyle='rgba(246,241,251,.5)';c.font=`500 ${H*.034}px 'JetBrains Mono',monospace`;
+  c.fillText('#ClubAnicoke   ♪   #аниме   ♪   vk.ru/anicoke',pad,H*.95);
+}
+function wrapText(c,text,x,y,maxW,lh,font,color,shadow){
+  c.font=font;c.fillStyle=color;c.textAlign='left';const words=text.split(' ');let line='',yy=y;
+  for(const w of words){const test=line+w+' ';if(c.measureText(test).width>maxW&&line){
+    if(shadow){c.save();c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=10;c.fillText(line.trim(),x,yy);c.restore();}else c.fillText(line.trim(),x,yy);
+    line=w+' ';yy+=lh;}else line=test;}
+  if(shadow){c.save();c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=10;c.fillText(line.trim(),x,yy);c.restore();}else c.fillText(line.trim(),x,yy);
+}
+function paintImgPrev(){const cv=$('#imgCanvas');const [W,H]=postDims();drawPostImg(cv,[W,H]);}
+
+/* ═══════════ вставка в курсор ═══════════ */
+function insertAtCaret(str){
+  const s=txt.selectionStart,e=txt.selectionEnd,v=txt.value;
+  // авто-пробел/перенос перед вставкой чипа
+  let pre='';if(s>0 && !/[\s\n]/.test(v[s-1]) && (str.startsWith('#')||str.startsWith('@')||str.startsWith('http')))pre=' ';
+  txt.value=v.slice(0,s)+pre+str+v.slice(e);
+  const pos=s+pre.length+str.length;txt.selectionStart=txt.selectionEnd=pos;
+  txt.focus();paintBack();updateMeters();
+}
+
+/* ═══════════ построение панелей ═══════════ */
+const tmplEl=$('#tmpl');
+TEMPLATES.forEach((t,i)=>{const b=document.createElement('button');
+  b.innerHTML=`<b><span class="e">${t.e}</span>${t.n}</b><span>${esc(t.t.slice(0,46))}…</span>`;
+  b.onclick=()=>{txt.value=t.t;S.folded=true;paintBack();updateMeters();toast('📝 шаблон вставлен');};
+  tmplEl.appendChild(b);});
+
+const boostEl=$('#boost');
+BOOSTS.forEach(b=>{const c=document.createElement('button');c.className='chip gold';c.textContent=b.l;
+  c.onclick=()=>insertAtCaret(b.t);boostEl.appendChild(c);});
+
+const tagsEl=$('#tags');
+TAGS.forEach(t=>{const c=document.createElement('button');c.className='chip hot';c.textContent=t;
+  c.onclick=()=>insertAtCaret(t);tagsEl.appendChild(c);});
+
+const emojiEl=$('#emoji');
+EMOJIS.forEach(e=>{const b=document.createElement('button');b.textContent=e;b.type='button';
+  b.onclick=()=>insertAtCaret(e);emojiEl.appendChild(b);});
+
+const moodEl=$('#imgMood');
+Object.entries(MOODS).forEach(([k,m])=>{const b=document.createElement('button');b.dataset.m=k;
+  if(k===S.imgMood)b.classList.add('on');b.textContent=m.name;
+  b.onclick=()=>{$$('#imgMood button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.imgMood=k;paintImgPrev();renderPost();};
+  moodEl.appendChild(b);});
+
+/* ═══════════ события редактора ═══════════ */
+txt.addEventListener('input',()=>{paintBack();updateMeters();});
+txt.addEventListener('scroll',()=>{back.scrollTop=txt.scrollTop;back.scrollLeft=txt.scrollLeft;});
+txt.addEventListener('keyup',syncSel);txt.addEventListener('click',syncSel);
+function syncSel(){/* подсветка не зависит от выделения, но оставляем хук */}
+
+/* картинка-контролы */
+$('#imgComp').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  $$('#imgComp button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.imgComp=b.dataset.c;paintImgPrev();renderPost();});
+$('#imgRatio').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  $$('#imgRatio button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.imgRatio=b.dataset.r;
+  $('#imgPrev').className='imgprev'+(S.imgRatio==='43'?' r43':S.imgRatio==='45'?' r45':'');paintImgPrev();renderPost();});
+$('#imgAcc').addEventListener('click',e=>{const a=e.target.closest('.acc');if(!a)return;
+  $$('#imgAcc .acc').forEach(x=>x.classList.remove('on'));a.classList.add('on');S.imgAcc=a.dataset.c;paintImgPrev();renderPost();});
+$('#imgOn').addEventListener('change',e=>{S.imgOn=e.target.checked;renderPost();});
+[['#imgTitle','imgTitle'],['#imgSub','imgSub'],['#imgQuote','imgQuote']].forEach(([sel,key])=>$(sel).addEventListener('input',e=>{S[key]=e.target.value;paintImgPrev();renderPost();}));
+
+/* опрос */
+$('#pollOn').addEventListener('change',e=>{S.pollOn=e.target.checked;renderPost();});
+$('#pollQ').addEventListener('input',e=>{S.pollQ=e.target.value;renderPost();});
+$('#pollOpts').addEventListener('input',e=>{S.pollOpts=e.target.value;renderPost();});
+
+/* тема превью */
+$('#themeSw').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  $$('#themeSw button').forEach(x=>x.classList.remove('on'));b.classList.add('on');S.theme=b.dataset.t;
+  $('#post').classList.toggle('dark',S.theme==='dark');});
+
+/* лайк в превью */
+$('#likeBtn').onclick=function(){this.classList.toggle('liked');const n=$('#likeN');n.textContent=(+n.textContent)+(this.classList.contains('liked')?1:-1);};
+
+/* ═══════════ черновики (localStorage) ═══════════ */
+const LS='anicoke_post_drafts';
+function loadDrafts(){try{return JSON.parse(localStorage.getItem(LS))||[];}catch(e){return[];}}
+function saveDrafts(d){try{localStorage.setItem(LS,JSON.stringify(d));}catch(e){}}
+function renderDrafts(){
+  const d=loadDrafts(),box=$('#drafts');box.innerHTML='';
+  if(!d.length){box.innerHTML='<div class="draft-empty">пока пусто — сохрани первый черновик 💾</div>';return;}
+  d.forEach(dr=>{const el=document.createElement('div');el.className='draft'+(dr.id===S.draftId?' on':'');
+    el.innerHTML=`<div class="t"><b>${esc(dr.title||'без названия')}</b><span>${new Date(dr.ts).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})} · ${dr.text.length} зн</span></div><button class="x" title="удалить">✕</button>`;
+    el.onclick=(ev)=>{if(ev.target.classList.contains('x'))return;loadDraft(dr);};
+    el.querySelector('.x').onclick=(ev)=>{ev.stopPropagation();removeDraft(dr.id);};
+    box.appendChild(el);});
+}
+function curDraftObj(){return {id:S.draftId||('d'+Date.now()),ts:Date.now(),title:(txt.value.match(/^#?\s*\S[^\n]*/)||[''])[0].slice(0,40)||'черновик',
+  text:txt.value,img:{comp:S.imgComp,ratio:S.imgRatio,mood:S.imgMood,acc:S.imgAcc,on:S.imgOn,title:S.imgTitle,sub:S.imgSub,quote:S.imgQuote},
+  poll:{on:S.pollOn,q:S.pollQ,opts:S.pollOpts}};}
+function loadDraft(dr){S.draftId=dr.id;txt.value=dr.text||'';
+  Object.assign(S,dr.img||{},{pollOn:(dr.poll||{}).on||false,pollQ:(dr.poll||{}).q||S.pollQ,pollOpts:(dr.poll||{}).opts||S.pollOpts});
+  // синхрон UI
+  $$('#imgComp button').forEach(x=>x.classList.toggle('on',x.dataset.c===S.imgComp));
+  $$('#imgRatio button').forEach(x=>x.classList.toggle('on',x.dataset.r===S.imgRatio));
+  $$('#imgMood button').forEach(x=>x.classList.toggle('on',x.dataset.m===S.imgMood));
+  $$('#imgAcc .acc').forEach(x=>x.classList.toggle('on',x.dataset.c===S.imgAcc));
+  $('#imgPrev').className='imgprev'+(S.imgRatio==='43'?' r43':S.imgRatio==='45'?' r45':'');
+  $('#imgOn').checked=S.imgOn;$('#imgTitle').value=S.imgTitle;$('#imgSub').value=S.imgSub;$('#imgQuote').value=S.imgQuote;
+  $('#pollOn').checked=S.pollOn;$('#pollQ').value=S.pollQ;$('#pollOpts').value=S.pollOpts;
+  S.folded=true;paintBack();updateMeters();paintImgPrev();renderPost();renderDrafts();toast('📂 черновик загружен');}
+function removeDraft(id){const d=loadDrafts().filter(x=>x.id!==id);saveDrafts(d);if(S.draftId===id)S.draftId=null;renderDrafts();toast('🗑 удалено');}
+$('#saveDraft').onclick=()=>{const d=loadDrafts(),obj=curDraftObj();const i=d.findIndex(x=>x.id===obj.id);
+  if(i>=0)d[i]=obj;else d.unshift(obj);S.draftId=obj.id;saveDrafts(d);renderDrafts();toast('💾 черновик сохранён');};
+$('#newPost').onclick=()=>{txt.value='';S.draftId=null;S.folded=true;paintBack();updateMeters();renderDrafts();toast('✨ чистый лист');txt.focus();};
+
+/* ═══════════ экспорт ═══════════ */
+$('#copyText').onclick=async()=>{try{await navigator.clipboard.writeText(txt.value);toast('📋 текст скопирован — вставляй в пост ВК');}
+  catch(e){txt.select();document.execCommand('copy');toast('📋 скопировано (fallback)');}};
+$('#dlImg').onclick=()=>{if(!S.imgOn){toast('включи «прикрепить картинку»');return;}
+  const [W,H]=postDims();const off=document.createElement('canvas');drawPostImg(off,[W,H]);
+  off.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`anicoke-post-${W}x${H}.png`;a.click();URL.revokeObjectURL(a.href);toast('🌸 картинка скачана');},'image/png');};
+$('#dlPrev').onclick=async()=>{
+  // превью поста целиком — через foreignObject в canvas (без внешних либ)
+  const node=$('#post');const w=node.offsetWidth,h=node.offsetHeight,scale=2;
+  const clone=node.cloneNode(true);
+  // вычисленные стили -> inline (упрощённо: копируем computed для всех элементов)
+  inlineStyles(node,clone);
+  clone.style.width=w+'px';clone.style.margin='0';
+  const data=new XMLSerializer().serializeToString(clone);
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w*scale}" height="${h*scale}">
+    <foreignObject width="${w}" height="${h}" transform="scale(${scale})">
+      <div xmlns="http://www.w3.org/1999/xhtml">${data}</div>
+    </foreignObject></svg>`;
+  const img=new Image();const blob=new Blob([svg],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);
+  img.onload=()=>{const cv=document.createElement('canvas');cv.width=w*scale;cv.height=h*scale;const c=cv.getContext('2d');
+    c.fillStyle=S.theme==='dark'?'#222325':'#fff';c.fillRect(0,0,cv.width,cv.height);c.drawImage(img,0,0);URL.revokeObjectURL(url);
+    cv.toBlob(b=>{if(!b){toast('превью не экспортировалось — используй скриншот');return;}
+      const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='anicoke-post-preview.png';a.click();URL.revokeObjectURL(a.href);toast('🖼 превью поста скачано');},'image/png');};
+  img.onerror=()=>{URL.revokeObjectURL(url);toast('превью не экспортировалось — сделай скриншот окна');};
+  img.src=url;};
+function inlineStyles(src,dst){
+  const cs=getComputedStyle(src);let i;dst.setAttribute('style',dst.getAttribute('style')||'');
+  for(i=0;i<cs.length;i++){const p=cs[i];try{dst.style.setProperty(p,cs.getPropertyValue(p));}catch(e){}}
+  const sc=src.children,dc=dst.children;for(let k=0;k<sc.length;k++)if(dc[k])inlineStyles(sc[k],dc[k]);
+}
+
+/* ═══════════ тост ═══════════ */
+let tT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),2800);}
+
+/* ═══════════ старт ═══════════ */
+(async()=>{
+  await Promise.all(['900 100px Unbounded','700 100px Golos Text','400 100px DotGothic16','500 100px JetBrains Mono'].map(f=>document.fonts.load(f).catch(()=>{})));
+  await document.fonts.ready;await loadYuki();
+  // стартовый текст-пример
+  txt.value=TEMPLATES[0].t;
+  addEventListener('resize',()=>{updateMeters();paintImgPrev();});
+  paintBack();updateMeters();paintImgPrev();renderPost();renderDrafts();
+})();
+</script>
+</body>
+</html>
