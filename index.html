@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Club Anicoke — аниме-клуб во ВКонтакте</title>
+    <meta name="description"
+        content="Club Anicoke — новый аниме-клуб во ВКонтакте: совместные просмотры, караоке-баттлы по опенингам, косплей и споры о концовках. Туториал по вступлению внутри.">
+    <meta name="theme-color" content="#150f24">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;900&family=Golos+Text:wght@400;500;600;700&family=DotGothic16&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        document.documentElement.classList.add('js');
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro-lock');
+    </script>
+    <script src="script.js" defer></script>
+    <noscript>
+        <style>
+            #intro {
+                display: none !important
+            }
+        </style>
+    </noscript>
+</head>
+
+<body>
+
+    <!-- ═══════════ КИНО-ЗАСТАВКА ═══════════ -->
+    <div id="intro" aria-hidden="true">
+        <div class="intro-curtain top"></div>
+        <div class="intro-curtain bottom"></div>
+        <div class="intro-flash"></div>
+        <div class="intro-stage">
+            <div class="intro-sun"></div>
+            <div class="intro-jp">
+                <span style="animation-delay:.35s">ア</span><span style="animation-delay:.47s">ニ</span><span
+                    style="animation-delay:.59s">コ</span><span style="animation-delay:.71s">ケ</span>
+            </div>
+            <div class="intro-title">CLUB <em>ANICOKE</em></div>
+            <div class="intro-line"></div>
+            <div class="intro-sub">// добро пожаловать в клуб</div>
+        </div>
+    </div>
+
+    <canvas id="sakura" aria-hidden="true"></canvas>
+    <div class="stars" aria-hidden="true"></div>
+    <div id="scrollProgress" aria-hidden="true"></div>
+
+    <!-- ═══════════ НАВИГАЦИЯ ═══════════ -->
+    <header class="nav" id="nav">
+        <div class="nav-inner">
+            <a class="logo" href="#top"><span class="st">✦</span> CLUB ANICOKE</a>
+            <nav class="nav-links">
+                <a class="nl" href="#about">О клубе</a>
+                <a class="nl" href="#tutorial">Туториал</a>
+                <a class="nl" href="#formats">Форматы</a>
+                <a class="nl" href="#faq">FAQ</a>
+            </nav>
+            <a class="btn btn-hot" href="https://vk.ru/anicoke" target="_blank" rel="noopener"
+                style="margin-left:auto">Вступить</a>
+        </div>
+    </header>
+
+    <main id="top">
+
+        <!-- ═══════════ ОТКРЫВАЮЩАЯ СЦЕНА ═══════════ -->
+        <section class="hero">
+            <div class="sun" aria-hidden="true"></div>
+            <div class="hero-jp" aria-hidden="true">アニコケクラブ</div>
+            <svg class="torii" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+                <g fill="#120d22">
+                    <path d="M40 52 Q600 -14 1160 52 L1160 90 Q600 26 40 90 Z" />
+                    <rect x="140" y="122" width="920" height="32" rx="4" />
+                    <rect x="565" y="64" width="70" height="66" />
+                    <path d="M255 154 L325 154 L305 300 L235 300 Z" />
+                    <path d="M875 154 L945 154 L965 300 L895 300 Z" />
+                </g>
+            </svg>
+
+            <div class="wrap">
+                <div class="hero-grid">
+                    <div>
+                        <div class="badge"><span class="dot"></span> набор открыт · ВКонтакте · старт 22 августа</div>
+                        <div class="hero-jp-top">アニコケクラブへようこそ — добро пожаловать</div>
+                        <h1>CLUB<br><span class="stroke">ANICOKE</span></h1>
+                        <p class="hero-sub">Новый аниме-клуб во ВКонтакте. Каждую субботу смотрим тайтлы сезона,
+                            поём опенинги в <b>караоке-баттлах</b> и до хрипоты спорим о концовках. Места хватит даже
+                            тебе.</p>
+                        <div class="hero-cta">
+                            <a class="btn btn-hot" href="https://vk.ru/anicoke" target="_blank" rel="noopener">⛩
+                                Вступить в группу</a>
+                            <a class="btn btn-ghost" href="#tutorial">Как вступить — туториал ↓</a>
+                        </div>
+                        <div class="count-wrap">
+                            <span class="count-label">до первого сбора</span>
+                            <div class="count" id="countdown">
+                                <div class="cell"><b id="cd-d">00</b><span>дней</span></div>
+                                <div class="cell"><b id="cd-h">00</b><span>часов</span></div>
+                                <div class="cell"><b id="cd-m">00</b><span>минут</span></div>
+                                <div class="cell"><b id="cd-s">00</b><span>секунд</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ticket-wrap rev">
+                        <div class="ticket" id="ticket">
+                            <div class="t-head"><span>CLUB ANICOKE</span><span class="jp">会員証</span></div>
+                            <div class="t-member">MEMBER<br><em>CARD</em></div>
+                            <div class="t-fields">
+                                <div class="t-f"><span>имя</span><b>ТВОЁ ИМЯ</b></div>
+                                <div class="t-f"><span>№</span><b>0001</b></div>
+                                <div class="t-f"><span>сезон</span><b>ЛЕТО '26</b></div>
+                            </div>
+                            <div class="barcode" aria-hidden="true"></div>
+                            <div class="t-note">действительна вечно · возврату не подлежит</div>
+                            <div class="stamp">ANICOKE<br>★ OFFICIAL ★</div>
+                        </div>
+                        <div class="nowplaying">
+                            <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                            <div><b>Сейчас в караоке</b><span>«Gurenge» — LiSA</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════ БЕГУЩАЯ СТРОКА ═══════════ -->
+        <div class="ticker" aria-hidden="true">
+            <div class="ticker-track">
+                <span>Аниме <b>✦</b> Караоке <b>✦</b> Косплей <b>✦</b> Арт <b>✦</b> Мемы <b>✦</b> Споры о концовках
+                    <b>✦</b> Опенинги <b>✦</b> Онгоинги <b>✦</b> <span class="jp">アニコケ</span> <b>✦</b></span>
+                <span>Аниме <b>✦</b> Караоке <b>✦</b> Косплей <b>✦</b> Арт <b>✦</b> Мемы <b>✦</b> Споры о концовках
+                    <b>✦</b> Опенинги <b>✦</b> Онгоинги <b>✦</b> <span class="jp">アニコケ</span> <b>✦</b></span>
+            </div>
+        </div>
+
+        <!-- ═══════════ О КЛУБЕ ═══════════ -->
+        <section id="about">
+            <div class="wrap">
+                <div class="sec-head rev">
+                    <div class="sec-tag">// о клубе <span class="jp">僕たちについて</span></div>
+                    <h2>Клуб для тех, кто ждёт субботу ради новой серии</h2>
+                </div>
+
+                <div class="about-grid">
+
+                    <!-- плакат-портрет маскота -->
+                    <figure class="portrait rev" id="portrait">
+                        <span class="corner tl"></span><span class="corner tr"></span>
+                        <span class="corner bl"></span><span class="corner br"></span>
+                        <div class="portrait-boke" aria-hidden="true"></div>
+                        <div class="portrait-jp" aria-hidden="true">看板娘</div>
+                        <div class="portrait-top">
+                            <span class="pt-vol">VOL.01</span>
+                            <span class="pt-role">маскот клуба ✦ 看板娘</span>
+                        </div>
+                        <div class="portrait-art" id="portraitArt"><noscript>🌸 Юки появится при включённом
+                                JavaScript</noscript></div>
+                        <figcaption class="portrait-cap">
+                            <div class="pc-name">ЮКИ <em>YUKI</em></div>
+                            <div class="pc-line">хранительница опенингов и чата</div>
+                            <div class="pc-tags">
+                                <span class="ptag">длинные волосы</span>
+                                <span class="ptag">кошачьи ушки</span>
+                                <span class="ptag">наушники</span>
+                                <span class="ptag">гетерохромия</span>
+                            </div>
+                        </figcaption>
+                    </figure>
+
+                    <div class="about-right">
+                        <div class="about-text rev">
+                            <p><b>Club Anicoke</b> — уютная группа во ВКонтакте, где никто не скажет «это просто
+                                мультики».
+                                Мы собираемся онлайн, смотрим <mark>онгоинги сезона</mark>, устраиваем
+                                <mark class="g">караоке-баттлы</mark> по опенингам и ведём чат, в котором
+                                <mark class="m">24/7</mark> живут мемы, теории и вечное «манга лучше».
+                            </p>
+                            <ul class="manifest">
+                                <li>Без спойлеров — за это у нас банят быстрее, чем за «Наруто — не аниме».</li>
+                                <li>Нубам рады: объясним, что такое исекай, и не осудим за короткий тай-лист.</li>
+                                <li>Никакой платы и «премиум-эпизодов» — всё на энтузиазме и любви к тайтлам.</li>
+                            </ul>
+                        </div>
+                        <div class="stats">
+                            <div class="stat rev"><b data-to="12">0</b>
+                                <p>тайтлов смотрим вместе за сезон</p>
+                            </div>
+                            <div class="stat rev"><b data-to="42">0</b>
+                                <p>трека в караоке-плейлисте — и это начало</p>
+                            </div>
+                            <div class="stat rev"><b data-to="100">0</b><i class="suf">%</i>
+                                <p>вайб, проверено первыми участниками</p>
+                            </div>
+                            <div class="stat rev"><b class="inf">∞</b>
+                                <p>споров «манга лучше» в чате</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════ ТУТОРИАЛ ═══════════ -->
+        <section id="tutorial">
+            <div class="wrap">
+                <div class="sec-head rev">
+                    <div class="sec-tag">// туториал <span class="jp">チュートリアル</span></div>
+                    <h2>Как вступить: 5 шагов — и ты в клубе</h2>
+                    <p>Никаких анкет на три страницы. Весь путь — две минуты, честно. Линия прогресса заполняется по
+                        мере чтения — считай, квест.</p>
+                </div>
+
+                <div class="steps" id="steps">
+                    <div class="rail" aria-hidden="true">
+                        <div class="rail-fill" id="railFill"></div>
+                    </div>
+
+                    <article class="step">
+                        <div class="step-num">01</div>
+                        <div class="step-card">
+                            <h3>Заведи аккаунт ВКонтакте <span class="chip">~1 минута</span></h3>
+                            <p>Если ВК уже есть — смело пропускай шаг, ты молодец. Если нет: регистрация занимает
+                                минуту, нужен только телефон.</p>
+                            <div class="mock">
+                                <div class="mock-bar"><i style="background:#ff5f57"></i><i
+                                        style="background:#febc2e"></i><i style="background:#28c840"></i><span
+                                        class="mock-url">vk.ru/join</span></div>
+                                <div class="mock-body">
+                                    <div class="vk-reg">
+                                        <div class="vk-logo">VK</div>
+                                        <div class="field">Телефон или почта</div>
+                                        <div class="field">Имя и фамилия</div>
+                                        <button class="btn btn-sky" type="button"
+                                            tabindex="-1">Зарегистрироваться</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="step">
+                        <div class="step-num">02</div>
+                        <div class="step-card">
+                            <h3>Найди нас в поиске <span class="chip">~30 секунд</span></h3>
+                            <p>Открой поиск сообществ и вбей <b style="color:var(--sakura)">Club Anicoke</b>. Мы одни
+                                такие — не перепутаешь.</p>
+                            <div class="mock">
+                                <div class="mock-bar"><i style="background:#ff5f57"></i><i
+                                        style="background:#febc2e"></i><i style="background:#28c840"></i><span
+                                        class="mock-url">vk.ru/search</span></div>
+                                <div class="mock-body">
+                                    <div class="search"><span class="s-ico">⌕</span><span id="typed"></span><span
+                                            class="caret" aria-hidden="true"></span></div>
+                                    <div class="result">
+                                        <div class="ava">A</div>
+                                        <div class="r-meta"><b>Club Anicoke</b><span>аниме-клуб · сообщество · 42
+                                                подписчика</span></div>
+                                        <button class="mini-btn" type="button" tabindex="-1">Подписаться</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="step">
+                        <div class="step-num">03</div>
+                        <div class="step-card">
+                            <h3>Нажми «Подписаться» <span class="chip">~5 секунд</span></h3>
+                            <p>Самый важный шаг во всём туториале. Можешь потренироваться прямо здесь — кнопка почти
+                                настоящая.</p>
+                            <div class="mock">
+                                <div class="sub-zone">
+                                    <button class="btn btn-hot" id="subBtn" type="button"
+                                        style="padding:18px 44px;font-size:14px">Подписаться</button>
+                                    <div class="hint">нажми, она не кусается 🌸</div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="step">
+                        <div class="step-num">04</div>
+                        <div class="step-card">
+                            <h3>Расскажи о себе в чате <span class="chip">~2 минуты</span></h3>
+                            <p>Напиши пару слов: как зовут, что смотришь, какой у тебя вайб. Новичков у нас встречают
+                                стикерами. Попробуй отправить сообщение прямо тут:</p>
+                            <div class="mock">
+                                <div class="mock-bar"><i style="background:#ff5f57"></i><i
+                                        style="background:#febc2e"></i><i style="background:#28c840"></i><span
+                                        class="mock-url">чат клуба</span></div>
+                                <div class="chat" id="chatBox">
+                                    <div class="msg them"><b>Юки</b>
+                                        <p>О, новенький! Привет 👋 Ты что смотришь в этом сезоне?</p>
+                                    </div>
+                                    <div class="msg them"><b>Рэн</b>
+                                        <p>Сегодня в 19:00 караоке-разминка, залетай 🎤</p>
+                                    </div>
+                                    <div class="chat-input">
+                                        <input id="chatInput" type="text" placeholder="Написать в чат клуба…"
+                                            maxlength="120" aria-label="Сообщение в чат клуба">
+                                        <button id="chatSend" type="button" aria-label="Отправить">➤</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="step">
+                        <div class="step-num">05</div>
+                        <div class="step-card">
+                            <h3>Приходи на первый сбор <span class="chip">каждую субботу</span></h3>
+                            <p>Онлайн-просмотр в 19:00 МСК, ссылка появляется в группе за день. Первая встреча уже
+                                скоро:</p>
+                            <div class="mock">
+                                <div class="mock-bar"><i style="background:#ff5f57"></i><i
+                                        style="background:#febc2e"></i><i style="background:#28c840"></i><span
+                                        class="mock-url">события клуба</span></div>
+                                <div class="mock-body event">
+                                    <div class="e-date"><b>22</b><span>АВГ</span></div>
+                                    <div class="e-info">
+                                        <b>Первый сбор: смотрим опенинги лета</b>
+                                        <span>онлайн · звонок ВК · 19:00 МСК · свободно мест: <span
+                                                id="seatCount">17</span></span>
+                                    </div>
+                                    <button class="btn btn-hot" id="joinBtn" type="button">Записаться</button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════ ФОРМАТЫ ═══════════ -->
+        <section id="formats">
+            <div class="wrap">
+                <div class="sec-head rev">
+                    <div class="sec-tag">// форматы <span class="jp">楽しみ方</span></div>
+                    <h2>Чем занимаемся в клубе</h2>
+                </div>
+                <div class="bento">
+                    <div class="b-card b-karaoke rev">
+                        <span class="b-emoji" aria-hidden="true">🎤</span>
+                        <div class="jp-tag">カラオケ</div>
+                        <h3>Караоке-баттлы</h3>
+                        <p>Опенинги, эндинги и неожиданные хиты в аниме-обработках. Голос не важен — важна отвага и
+                            знание текста на ромадзи.</p>
+                        <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                        <div class="tagline">каждую субботу · 19:00 мск</div>
+                    </div>
+                    <div class="b-card b-watch rev">
+                        <span class="b-emoji" aria-hidden="true">📺</span>
+                        <div class="jp-tag">上映会</div>
+                        <h3>Совместные просмотры</h3>
+                        <p>Синхронизируем плееры и смотрим онгоинг сезона. Пауза — только на мемные кадры.</p>
+                        <div class="rec"><i></i> live</div>
+                    </div>
+                    <div class="b-card rev">
+                        <span class="b-emoji" aria-hidden="true">🎭</span>
+                        <div class="jp-tag">コスプレ</div>
+                        <h3>Косплей-пятницы</h3>
+                        <p>Разбираем образы и не судим за картонные мечи.</p>
+                    </div>
+                    <div class="b-card rev">
+                        <span class="b-emoji" aria-hidden="true">🎨</span>
+                        <div class="jp-tag">アート</div>
+                        <h3>Арт-обмены</h3>
+                        <p>Рисуем фанарт по жребию и устраиваем добрые баттлы.</p>
+                    </div>
+                    <div class="b-card b-talk rev">
+                        <span class="b-emoji" aria-hidden="true">💬</span>
+                        <div class="jp-tag">討論</div>
+                        <h3>Споры о концовках</h3>
+                        <p>Еженедельная рубрика «манга лучше»: аргументы, скриншоты — и никаких спойлеров до выхода
+                            серии.</p>
+                    </div>
+                    <div class="b-card b-meme rev">
+                        <span class="b-emoji" aria-hidden="true">🍜</span>
+                        <div class="jp-tag">ミーム</div>
+                        <h3>Мемный архив</h3>
+                        <p>Лучшие мемы недели попадают в золотую коллекцию группы. Автор получает титул Сэнсэя Мема.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════ FAQ ═══════════ -->
+        <section id="faq">
+            <div class="wrap">
+                <div class="sec-head rev" style="margin-left:auto;margin-right:auto;text-align:center">
+                    <div class="sec-tag">// вопросы <span class="jp">よくある質問</span></div>
+                    <h2>Частые вопросы</h2>
+                </div>
+                <div class="faq">
+                    <div class="faq-item rev">
+                        <button class="faq-q" type="button" id="faq-q1" aria-expanded="false" aria-controls="faq-a1">Это
+                            бесплатно?<span class="pl" aria-hidden="true">＋</span></button>
+                        <div class="faq-a" id="faq-a1" role="region" aria-labelledby="faq-q1">
+                            <p>Полностью. Никаких взносов и платных «премиум-эпизодов». Клуб живёт на энтузиазме,
+                                опенингах и GitHub Pages.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item rev">
+                        <button class="faq-q" type="button" id="faq-q2" aria-expanded="false" aria-controls="faq-a2">Я
+                            посмотрел(а) всего два тайтла — мне можно?<span class="pl"
+                                aria-hidden="true">＋</span></button>
+                        <div class="faq-a" id="faq-a2" role="region" aria-labelledby="faq-q2">
+                            <p>Нужно! У нас нет экзамена на входе. Расскажи в чате про свои два тайтла — и всё, ты в
+                                теме. Когда-то все начинали с «Тетради смерти».</p>
+                        </div>
+                    </div>
+                    <div class="faq-item rev">
+                        <button class="faq-q" type="button" id="faq-q3" aria-expanded="false" aria-controls="faq-a3">Где
+                            проходят встречи?<span class="pl" aria-hidden="true">＋</span></button>
+                        <div class="faq-a" id="faq-a3" role="region" aria-labelledby="faq-q3">
+                            <p>Онлайн: звонок ВКонтакте — ссылка появляется в группе за день до встречи.
+                                Иногда собираемся офлайн, следи за анонсами.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item rev">
+                        <button class="faq-q" type="button" id="faq-q4" aria-expanded="false"
+                            aria-controls="faq-a4">Можно просто сидеть и читать чат?<span class="pl"
+                                aria-hidden="true">＋</span></button>
+                        <div class="faq-a" id="faq-a4" role="region" aria-labelledby="faq-q4">
+                            <p>Конечно. У нас есть негласная роль «тихий наблюдатель», и её носят с гордостью. Захочешь
+                                — заговоришь, никто не торопит.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item rev">
+                        <button class="faq-q" type="button" id="faq-q5" aria-expanded="false"
+                            aria-controls="faq-a5">Когда старт?<span class="pl" aria-hidden="true">＋</span></button>
+                        <div class="faq-a" id="faq-a5" role="region" aria-labelledby="faq-q5">
+                            <p>Первый сбор — 22 августа в 19:00 МСК. Таймер наверху страницы тикает не просто так 😉</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="ticker ticker--rev" aria-hidden="true">
+            <div class="ticker-track">
+                <span>Вступай <b>✦</b> Смотри <b>✦</b> Пой <b>✦</b> Рисуй <b>✦</b> Спорь <b>✦</b> <span
+                        class="jp">またね</span> <b>✦</b> Вступай <b>✦</b> Смотри <b>✦</b> Пой <b>✦</b> Рисуй <b>✦</b>
+                    Спорь <b>✦</b> <span class="jp">またね</span> <b>✦</b></span>
+                <span>Вступай <b>✦</b> Смотри <b>✦</b> Пой <b>✦</b> Рисуй <b>✦</b> Спорь <b>✦</b> <span
+                        class="jp">またね</span> <b>✦</b> Вступай <b>✦</b> Смотри <b>✦</b> Пой <b>✦</b> Рисуй <b>✦</b>
+                    Спорь <b>✦</b> <span class="jp">またね</span> <b>✦</b></span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ═══════════ ФУТЕР ═══════════ -->
+    <footer>
+        <div class="foot-jp" aria-hidden="true">アニコケ</div>
+        <div class="wrap">
+            <div class="foot-grid">
+                <div class="f-brand">
+                    <a class="logo" href="#top"><span class="st">✦</span> CLUB ANICOKE</a>
+                    <p>Аниме-клуб во ВКонтакте. Основан летом 2026 на энтузиазме, опенингах.
+                    </p>
+                </div>
+                <div>
+                    <h4>Навигация</h4>
+                    <a class="fl" href="#about">О клубе</a>
+                    <a class="fl" href="#tutorial">Туториал</a>
+                    <a class="fl" href="#formats">Форматы</a>
+                    <a class="fl" href="#faq">FAQ</a>
+                </div>
+                <div>
+                    <h4>Мы в сети</h4>
+                    <a class="fl" href="https://vk.ru/anicoke" target="_blank" rel="noopener">ВКонтакте ↗</a>
+                    <a class="fl" href="https://github.com/anicoke" target="_blank" rel="noopener">GitHub ↗</a>
+                    <a class="fl" href="https://vk.ru/anicoke" target="_blank" rel="noopener">Предложить тайтл ↗</a>
+                </div>
+            </div>
+            <div class="foot-bottom">
+                <span>© 2026 Club Anicoke · сделано с 🌸 · работает на GitHub.</span>
+                <span class="hint">↑ ↑ ↓ ↓ ← → ← → B A</span>
+            </div>
+        </div>
+    </footer>
+
+    <div class="toast" id="toast" role="status"></div>
+
+</body>
+
+</html>
