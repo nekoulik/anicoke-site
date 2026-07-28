@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#241634"/>
+      <stop offset="1" stop-color="#150f24"/>
+    </linearGradient>
+    <linearGradient id="hair" x1=".2" y1="0" x2=".8" y2="1">
+      <stop offset="0" stop-color="#ffd0e6"/>
+      <stop offset=".5" stop-color="#ff9ec7"/>
+      <stop offset="1" stop-color="#cf6494"/>
+    </linearGradient>
+    <radialGradient id="skin" cx=".4" cy=".35" r=".75">
+      <stop offset="0" stop-color="#fff2e8"/>
+      <stop offset="1" stop-color="#f2c4ad"/>
+    </radialGradient>
+  </defs>
+  <!-- плашка -->
+  <rect x="2" y="2" width="60" height="60" rx="15" fill="url(#bg)" stroke="#ff9ec7" stroke-opacity=".55" stroke-width="1.5"/>
+  <!-- уши -->
+  <path d="M17 25 L12 8 L27 18 Z" fill="url(#hair)" stroke="#150f24" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M47 25 L52 8 L37 18 Z" fill="url(#hair)" stroke="#150f24" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M17 22 L15 13 L23 18 Z" fill="#ff8fb0"/>
+  <path d="M47 22 L49 13 L41 18 Z" fill="#ff8fb0"/>
+  <!-- голова / волосы -->
+  <circle cx="32" cy="34" r="17" fill="url(#hair)"/>
+  <!-- ободок наушников -->
+  <path d="M16 31 Q32 12 48 31" fill="none" stroke="#2a2438" stroke-width="3.4" stroke-linecap="round"/>
+  <!-- чашки наушников -->
+  <circle cx="14" cy="36" r="7" fill="#2a2438" stroke="#ffc85c" stroke-width="2"/>
+  <circle cx="50" cy="36" r="7" fill="#2a2438" stroke="#ffc85c" stroke-width="2"/>
+  <circle cx="14" cy="36" r="2.4" fill="#100c1a"/>
+  <circle cx="50" cy="36" r="2.4" fill="#100c1a"/>
+  <!-- лицо -->
+  <ellipse cx="32" cy="38" rx="12" ry="11" fill="url(#skin)"/>
+  <!-- чёлка -->
+  <path d="M20 31 Q26 24 32 30 Q38 24 44 31 Q41 35 37 30 Q32 37 27 30 Q23 35 20 31 Z" fill="url(#hair)"/>
+  <!-- глаза: гетерохромия -->
+  <circle cx="27" cy="39" r="3.3" fill="#8a52e0"/>
+  <circle cx="37" cy="39" r="3.3" fill="#39d0c8"/>
+  <circle cx="28.1" cy="37.8" r="1.1" fill="#ffffff"/>
+  <circle cx="38.1" cy="37.8" r="1.1" fill="#ffffff"/>
+  <!-- рот -->
+  <path d="M29 45 Q32 48 35 45" fill="none" stroke="#b83350" stroke-width="1.4" stroke-linecap="round"/>
+</svg>
