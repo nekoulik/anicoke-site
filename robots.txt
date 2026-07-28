@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+# студии — внутренние инструменты клуба, из поисковой выдачи убираем
+Disallow: /meme-forge.html
+Disallow: /post-forge.html
+Disallow: /cover-studio.html
+Disallow: /avatar-studio.html
+Disallow: /chat-banner-studio.html
+Disallow: /music-cover-studio.html
+Disallow: /og-maker.html
