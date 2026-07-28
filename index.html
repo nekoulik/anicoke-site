@@ -15,8 +15,8 @@
     <meta property="og:title" content="Club Anicoke — аниме-клуб во ВКонтакте">
     <meta property="og:description"
         content="Совместные просмотры, караоке-баттлы по опенингам и споры о концовках каждую субботу. Набор открыт.">
-    <meta property="og:url" content="https://ТВОЙ-ЛОГИН.github.io/club-anicoke/og-image.png">
-    <meta property="og:image" content="https://ТВОЙ-ЛОГИН.github.io/club-anicoke/og-image.png">
+    <meta property="og:url" content="https://nekoulik.github.io/anicoke-site/">
+    <meta property="og:image" content="https://nekoulik.github.io/anicoke-site/og-image.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:alt" content="Club Anicoke — аниме-клуб: караоке, просмотры, косплей">
@@ -24,7 +24,7 @@
     <meta name="twitter:title" content="Club Anicoke — аниме-клуб во ВКонтакте">
     <meta name="twitter:description"
         content="Совместные просмотры, караоке-баттлы по опенингам и споры о концовках каждую субботу.">
-    <meta name="twitter:image" content="https://ТВОЙ-ЛОГИН.github.io/club-anicoke/og-image.png">
+    <meta name="twitter:image" content="https://nekoulik.github.io/anicoke-site/og-image.png">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌸</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,6 +36,11 @@
     <script>
         document.documentElement.classList.add('js');
         if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('intro-lock');
+        // страховка: даже если script.js упадёт — через 3.5с разблокируем скролл и показываем контент
+        setTimeout(function () {
+            document.documentElement.classList.remove('intro-lock');
+            document.querySelectorAll('.rev, .step').forEach(function (el) { el.classList.add('in'); });
+        }, 3500);
     </script>
     <script src="script.js" defer></script>
     <noscript>
