@@ -21,6 +21,7 @@
 | `post-forge.html` | Редактор постов с живым превью ленты ВК | [↗](https://nekoulik.github.io/anicoke-site/post-forge.html) |
 | `meme-forge.html` | Мем‑мейкер на реакциях Юки | [↗](https://nekoulik.github.io/anicoke-site/meme-forge.html) |
 | `og-maker.html` | Картинка‑превью ссылки для соцсетей (1200×630) | [↗](https://nekoulik.github.io/anicoke-site/og-maker.html) |
+| `member-card-studio.html` | Персональные билеты участников (имя, №, штрихкод) | [↗](https://nekoulik.github.io/anicoke-site/member-card-studio.html) |
 
 ## Маскот
 
@@ -51,7 +52,8 @@ anicoke-site/
 ├── music-cover-studio.html
 ├── post-forge.html
 ├── meme-forge.html
-└── og-maker.html
+├── og-maker.html
+└── member-card-studio.html # персональные билеты участников
 ```
 
 ## Запуск локально
