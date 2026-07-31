@@ -379,7 +379,7 @@
     .seg button {
       font-family: var(--display);
       font-weight: 700;
-      font-size: 8px;
+      font-size: 7.5px;
       letter-spacing: 0;
       text-transform: uppercase;
       padding: 8px 3px;
@@ -514,6 +514,11 @@
       line-height: 1
     }
 
+    .chip.e.on {
+      border-color: var(--hot);
+      background: rgba(255, 79, 110, .15)
+    }
+
     .sw {
       display: flex;
       align-items: center;
@@ -563,7 +568,8 @@
     .swatches {
       display: flex;
       gap: 7px;
-      align-items: center
+      align-items: center;
+      flex-wrap: wrap
     }
 
     .swatch {
@@ -571,7 +577,7 @@
       height: 24px;
       border-radius: 7px;
       cursor: pointer;
-      border: 2px solid transparent;
+      border: 2px solid var(--line);
       transition: .16s
     }
 
@@ -1061,12 +1067,12 @@
         <div class="fh-tag"><span class="gl"><i></i><i></i><i></i><i></i></span>// meme forge <span
             class="jp">ミーム工房</span></div>
         <h1 class="fh-title">MEME <em>FORGE</em> <span class="face">😼</span></h1>
-        <p class="fh-sub">Редактор мемов для постов <b>Club Anicoke</b>. Юки с восемью реакциями как готовые шаблоны,
-          форматы «ожидание / реальность» и drake‑сплит, перетаскиваемые слои, четыре стиля текста и экспорт PNG под
-          ленту ВК.</p>
+        <p class="fh-sub">Редактор мемов для постов <b>Club Anicoke</b>. Юки с шестнадцатью реакциями, форматы «ожидание
+          / реальность» и drake‑сплит, время года на фоне, перетаскиваемые слои с редактором и экспорт PNG под ленту ВК.
+        </p>
       </div>
       <div class="fh-meta">
-        <div class="fh-pill"><span class="dot"></span>слои drag + touch</div>
+        <div class="fh-pill"><span class="dot"></span>16 реакций · 4 сезона</div>
         <div class="fh-pill">формат <b>1:1 · 4:5 · 16:9</b></div>
       </div>
     </header>
@@ -1100,6 +1106,11 @@
         </div>
 
         <div class="card">
+          <h3>время года <span class="jp">季節</span></h3>
+          <div class="seg c4" id="season"></div>
+        </div>
+
+        <div class="card">
           <h3>добавить слой <span class="jp">＋</span></h3>
           <div class="seg c2">
             <button id="addText">✎ текст</button>
@@ -1130,7 +1141,7 @@
         <div class="stage-bar">
           <span class="meter">слоёв <b id="mLayers">0</b></span>
           <span class="meter">формат <b id="mRatio">1:1</b></span>
-          <span class="meter">реакция <b id="mFace">happy</b></span>
+          <span class="meter">реакция <b id="mFace">рада</b></span>
           <label class="sw"><input type="checkbox" id="gridOn"><span class="box"></span>правило третей</label>
         </div>
       </div>
@@ -1169,6 +1180,13 @@
           <h3>слои на холсте <span class="jp">層</span></h3>
           <div class="layer-list" id="layerList"></div>
           <div class="cap" id="layerHint">выбери слой — появятся хэндлы размера и поворота</div>
+        </div>
+
+        <div class="card" id="editCard">
+          <h3>редактор слоя <span class="jp">編集</span></h3>
+          <div id="editBody">
+            <div class="cap">выбери слой на холсте или в списке</div>
+          </div>
         </div>
 
         <div class="card">
@@ -1218,14 +1236,13 @@
 
   <script>
     const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-    /* защитный навешиватель: отсутствующий элемент больше не валит инициализацию */
     function on(sel, ev, fn) {
       const el = typeof sel === 'string' ? $(sel) : sel;
       if (el) { el.addEventListener(ev, fn); return el; }
       console.warn('[meme-forge] элемент не найден, пропуск:', sel); return null;
     }
 
-    /* ═══════════ ambient-фон ═══════════ */
+    /* ═══════════ ambient-фон страницы ═══════════ */
     (() => {
       const cv = $('#bg'), cx = cv.getContext('2d'); let W, H, ps = [], st = [];
       const C = ['#ffb7d5', '#ff9ec7', '#ffd3e4'];
@@ -1252,6 +1269,8 @@
     const FACES = [
       { k: 'happy', n: 'рада' }, { k: 'laugh', n: 'ржёт' }, { k: 'cry', n: 'плачет' }, { k: 'angry', n: 'злость' },
       { k: 'shock', n: 'шок' }, { k: 'smug', n: 'ухмылка' }, { k: 'sleep', n: 'спит' }, { k: 'love', n: 'влюблена' },
+      { k: 'wink', n: 'миг!' }, { k: 'sad', n: 'грусть' }, { k: 'cool', n: 'крутая' }, { k: 'sweat', n: 'ой…' },
+      { k: 'star', n: 'вау!' }, { k: 'dead', n: 'умерла' }, { k: 'blush', n: 'стыд' }, { k: 'think', n: 'хм…' },
     ];
     const MOODS = {
       sunset: { name: 'закат', bg: [[0, '#3a1230'], [.5, '#241029'], [1, '#150f24']], sun: { x: .8, y: .3, r: .7, c0: '#ff8fa0', c1: '#e63956', c2: '#b81f42' } },
@@ -1259,16 +1278,24 @@
       sakura: { name: 'сакура', bg: [[0, '#4a1c3c'], [.5, '#341634'], [1, '#241634']], sun: { x: .8, y: .32, r: .7, c0: '#ffc2dd', c1: '#ff7da6', c2: '#d96f9c' } },
       neon: { name: 'неон', bg: [[0, '#120c22'], [1, '#0a0716']], sun: { x: .8, y: .36, r: .65, c0: 'rgba(111,227,193,.42)', c1: 'rgba(255,79,110,.18)', c2: 'transparent' } },
     };
-    const STICKERS = ['😂', '💀', '🗿', '😭', '🔥', '✨', '❓', '', '🤡', '', '💖', '😎', '🎤', '📺', '🤯', '😤', '🥲', ''];
-    const TFILLS = [['#ffffff', 'белый'], ['#150f24', 'чёрный'], ['#ffc85c', 'золото'], ['#ff9ec7', 'сакура']];
-    const TSTROKES = [['#150f24', 'чёрный'], ['#ffffff', 'белый'], ['#ff4f6e', 'hot'], ['none', 'без']];
+    const SEASONS = {
+      spring: { name: 'весна', jp: '春', part: 'petal', colors: ['#ffb7d5', '#ff9ec7', '#ffd3e4', '#ff8fb8'] },
+      summer: { name: 'лето', jp: '夏', part: 'firefly', colors: ['#ffe08a', '#ffc85c', '#fff3c4', '#a8e063'] },
+      autumn: { name: 'осень', jp: '秋', part: 'leaf', colors: ['#ff9a52', '#e8622c', '#ffc85c', '#c0392b'] },
+      winter: { name: 'зима', jp: '冬', part: 'snow', colors: ['#ffffff', '#e8f2ff', '#cfe4ff', '#dbeafe'] },
+    };
+    const STICKERS = ['😂', '💀', '🗿', '😭', '🔥', '✨', '❓', '👀', '🤡', '💢', '💖', '😎', '🎤', '📺', '🤯', '😤', '🥲', '🌸'];
+    const TFILLS = [['#ffffff', 'белый'], ['#ffc85c', 'золото'], ['#ff9ec7', 'сакура']];
+    const TSTROKES = [['#150f24', 'чёрный'], ['#ff4f6e', 'hot'], ['none', 'без']];
     const SIZEZ = { S: .058, M: .082, L: .112, XL: .15 };
     const DEF_SPLIT = ['ОЖИДАНИЕ', 'РЕАЛЬНОСТЬ'], DEF_DRAKE = ['НЕТ', 'ДА'];
     const HANDLE_CSS = 12, HANDLE_HIT = 15, HANDLE_LEN = 22;
+    const EDIT_COLORS = ['#ffc85c', '#ff4f6e', '#6fe3c1', '#8ecbff', '#ffffff', '#150f24'];
+    const TEXT_H = { S: .06, M: .1, L: .16, XL: .24 };
 
     /* ═══════════ состояние ═══════════ */
     const S = {
-      layout: 'single', ratio: '11', face: 'happy', mood: 'sunset',
+      layout: 'single', ratio: '11', face: 'happy', mood: 'sunset', season: 'spring',
       tStyle: 'classic', tSize: 'M', tFill: '#ffffff', tStroke: '#150f24',
       topText: 'КОГДА НАШЁЛ СВОЙ ВАЙФУ', botText: 'А ОНА ИЗ ПРОШЛОГО СЕЗОНА',
       cap1: 'ОЖИДАНИЕ', cap2: 'РЕАЛЬНОСТЬ', grid: false,
@@ -1318,6 +1345,12 @@
         const g = `<ellipse cx="${ex}" cy="66" rx="5.6" ry="6.6" fill="url(#${eL})"/><ellipse cx="${ex}" cy="66" rx="2.4" ry="3.2" fill="#120b22"/><circle cx="${ex + 1.8}" cy="63" r="1.6" fill="#fff"/><path d="M${ex - 9},58 l17,5" stroke="#1d1430" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
         return w ? `<g transform="${w}">${g}</g>` : `<g>${g}</g>`;
       };
+      /* новые примитивы */
+      const line = (ex) => `<path d="M${ex - 8},65 q8,4 16,0" stroke="#2a1d3a" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+      const barc = (ex) => `<path d="M${ex - 8},63 q8,6 16,0" stroke="#2a1d3a" stroke-width="3.2" fill="none" stroke-linecap="round"/>`;
+      const xeye = (ex) => `<path d="M${ex - 5},60 l10,10 M${ex + 5},60 l-10,10" stroke="#2a1d3a" stroke-width="3" stroke-linecap="round"/>`;
+      const stareye = (ex, grad) => `<ellipse cx="${ex}" cy="65" rx="6.6" ry="7.9" fill="url(#${grad})"/><path d="M${ex},58 L${ex + 1.8},63 L${ex + 7},65 L${ex + 1.8},67 L${ex},72 L${ex - 1.8},67 L${ex - 7},65 L${ex - 1.8},63 Z" fill="#ffc85c"/><circle cx="${ex + 2}" cy="61" r="1.2" fill="#fff"/>`;
+      const thinkeye = (ex, grad) => `<ellipse cx="${ex}" cy="65" rx="6.3" ry="7.7" fill="url(#${grad})"/><circle cx="${ex + 2.6}" cy="62" r="3" fill="#120b22"/><circle cx="${ex + 3.6}" cy="61" r="1" fill="#fff"/><path d="M${ex - 9.5},57 q9.5,-7 19,0" stroke="#1d1430" stroke-width="3" fill="none" stroke-linecap="round"/>`;
       let L, R;
       switch (face) {
         case 'laugh': L = happy(58, sxL); R = happy(82, sxR); break;
@@ -1327,6 +1360,14 @@
         case 'sleep': L = sleep(58, sxL); R = sleep(82, sxR); break;
         case 'love': L = love(58); R = love(82); break;
         case 'angry': L = angry(58, sxL); R = angry(82, sxR); break;
+        case 'wink': L = open(58, eL, sxL); R = happy(82, sxR); break;
+        case 'sad': L = open(58, eL, sxL); R = open(82, eR, sxR); break;
+        case 'cool': L = line(58); R = line(82); break;
+        case 'sweat': L = open(58, eL, sxL); R = open(82, eR, sxR); break;
+        case 'star': L = stareye(58, eL); R = stareye(82, eR); break;
+        case 'dead': L = xeye(58); R = xeye(82); break;
+        case 'blush': L = barc(58); R = barc(82); break;
+        case 'think': L = thinkeye(58, eL); R = thinkeye(82, eR); break;
         default: L = open(58, eL, sxL); R = open(82, eR, sxR);
       }
       return L + R;
@@ -1340,7 +1381,23 @@
         case 'smug': return `<path d="M62,80 q8,5 16,-1" stroke="#b83350" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
         case 'sleep': return `<path d="M64,82 q6,3 12,0" stroke="#b83350" stroke-width="2.2" fill="none" stroke-linecap="round"/><text x="92" y="40" font-family="Unbounded" font-size="14" fill="#8ecbff" font-weight="700">z</text><text x="100" y="30" font-family="Unbounded" font-size="11" fill="#8ecbff" font-weight="700">z</text>`;
         case 'love': return `<path d="M62,80 q8,8 16,0 q-2,7 -8,7 q-6,0 -8,-7z" fill="#9c2740"/>`;
+        case 'wink': return `<path d="M61,79 q9,8 18,0 q-2,7 -9,7 q-7,0 -9,-7z" fill="#9c2740"/>`;
+        case 'sad': return `<path d="M63,84 q7,-5 14,0" stroke="#b83350" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+        case 'cool': return `<path d="M62,80 q8,5 16,-1" stroke="#b83350" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+        case 'sweat': return `<path d="M62,82 q4,3 8,0 q4,-3 8,0" stroke="#b83350" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        case 'star': return `<ellipse cx="70" cy="84" rx="5.5" ry="7" fill="#9c2740"/><path d="M66,82 q4,2 8,0 q-1,3 -4,3 q-3,0 -4,-3z" fill="#ff8aa0"/>`;
+        case 'dead': return `<path d="M60,84 q5,-3 10,0 q5,3 10,0" stroke="#b83350" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        case 'blush': return `<path d="M66,82 q4,4 8,0" stroke="#b83350" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+        case 'think': return `<path d="M65,83 q6,3 11,1" stroke="#b83350" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
         default: return `<path d="M63,79 q7,8 14,0 q-2,7 -7,7 q-5,0 -7,-7z" fill="#9c2740"/><path d="M64,80 q6,3 12,0 q-2,2 -6,2 q-4,0 -6,-2z" fill="#ff8aa0"/>`;
+      }
+    }
+    function buildBrows(face, hD) {
+      switch (face) {
+        case 'angry': return `<path d="M48,50 l14,4" stroke="${hD}" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M92,50 l-14,4" stroke="${hD}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+        case 'sad': return `<path d="M50,55 l13,-4" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M77,51 l13,4" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+        case 'think': return `<path d="M50,53 q7,-3 13,-1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M77,48 q7,-4 13,-1" stroke="${hD}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+        default: return `<path d="M50,52 q7,-3 13,-1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M77,51 q7,-2 13,1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
       }
     }
     function chibiSVG(face) {
@@ -1373,13 +1430,16 @@
       const faceG = `<path d="M44,60 C44,34 96,34 96,60 C96,82 84,94 70,94 C56,94 44,82 44,60 Z" fill="url(#${id}_sk)"/><path d="M46,58 C46,46 52,40 60,38 C50,42 47,52 48,64 C48,72 50,80 56,86 C49,80 46,70 46,58 Z" fill="#fff" opacity=".4"/>`;
       const front = `<path d="M40,56 C38,28 102,28 100,56 C100,42 92,34 84,32 C90,44 84,50 78,42 C76,54 68,44 64,54 C60,44 52,54 50,42 C44,50 38,44 44,32 C48,34 40,42 40,56 Z" fill="url(#${id}_h)"/><path d="M50,36 C52,50 56,56 58,46 C58,56 62,58 64,48 C64,58 68,58 70,48 C72,58 76,56 76,44 C78,56 82,50 82,40 C74,30 56,30 50,36 Z" fill="url(#${id}_h)"/><path d="M46,32 C58,24 82,24 94,34 C82,29 58,29 46,37 Z" fill="#fff" opacity=".34"/>`;
       const cup = (px, rot) => `<g transform="rotate(${rot} ${px} 64)"><ellipse cx="${px}" cy="64" rx="10.5" ry="14.5" fill="url(#${id}_hp)"/><ellipse cx="${px}" cy="64" rx="7.4" ry="11" fill="none" stroke="${p.accent}" stroke-width="1.6" opacity=".85"/><ellipse cx="${px}" cy="64" rx="5" ry="8.4" fill="#0c0814"/></g>`;
-      const brows = face === 'angry'
-        ? `<path d="M48,50 l14,4" stroke="${hD}" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M92,50 l-14,4" stroke="${hD}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
-        : `<path d="M50,52 q7,-3 13,-1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M77,51 q7,-2 13,1" stroke="${hD}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+      const brows = buildBrows(face, hD);
       const eyes = buildEyes(face, id, p, sxL, sxR);
       const mouth = buildMouth(face);
-      const blush = `<ellipse cx="52" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/><ellipse cx="88" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/>`;
-      return `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="240" viewBox="0 0 140 240">${defs}<ellipse cx="70" cy="232" rx="30" ry="6" fill="rgba(0,0,0,.35)"/>${tail}${back}${long}${hpBand}${ears}${leg(56)}${leg(64)}${torso}${armL}${armR}${neck}${scarf}${faceG}${front}${brows}${eyes}${blush}${mouth}${cup(40, -8)}${cup(100, 8)}</svg>`;
+      const blushBase = `<ellipse cx="52" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/><ellipse cx="88" cy="74" rx="6.5" ry="3.6" fill="url(#${id}_bl)"/>`;
+      const bigBlush = `<ellipse cx="51" cy="75" rx="9" ry="5" fill="#ff6f96" opacity=".55"/><ellipse cx="89" cy="75" rx="9" ry="5" fill="#ff6f96" opacity=".55"/>`;
+      const blush = face === 'blush' ? bigBlush : blushBase;
+      const glasses = `<g><rect x="45" y="57" width="23" height="15" rx="7" fill="#160f24"/><rect x="72" y="57" width="23" height="15" rx="7" fill="#160f24"/><path d="M68,63 h4" stroke="#160f24" stroke-width="3"/><path d="M45,61 l-6,-4 M95,61 l6,-4" stroke="#160f24" stroke-width="3" stroke-linecap="round"/><rect x="49" y="60" width="8" height="4" rx="2" fill="#4a4260" opacity=".7"/><rect x="76" y="60" width="8" height="4" rx="2" fill="#4a4260" opacity=".7"/></g>`;
+      const sweatDrop = `<path d="M97,50 q-5,9 0,14 q5,-5 0,-14z" fill="#7fd0ff" opacity=".9"/>`;
+      const extra = face === 'cool' ? glasses : face === 'sweat' ? sweatDrop : '';
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="140" height="240" viewBox="0 0 140 240">${defs}<ellipse cx="70" cy="232" rx="30" ry="6" fill="rgba(0,0,0,.35)"/>${tail}${back}${long}${hpBand}${ears}${leg(56)}${leg(64)}${torso}${armL}${armR}${neck}${scarf}${faceG}${front}${brows}${eyes}${blush}${mouth}${extra}${cup(40, -8)}${cup(100, 8)}</svg>`;
     }
     const yukiCache = {};
     function yukiImg(face) {
@@ -1396,6 +1456,41 @@
 
     function dims() { return S.ratio === '45' ? [1000, 1250] : S.ratio === '169' ? [1280, 720] : [1000, 1000]; }
 
+    /* сезонные частицы на фоне мема */
+    function drawSeasonParticles(c, W, H) {
+      const s = SEASONS[S.season]; const C = s.colors; const r2 = rng(42);
+      for (let i = 0; i < 34; i++) {
+        const x = r2() * W, y = r2() * H, rot = r2() * 6.28, col = C[r2() * C.length | 0];
+        if (s.part === 'petal' || s.part === 'leaf') {
+          const sz = (s.part === 'leaf' ? 10 : 8) + r2() * 15;
+          c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = .3 + r2() * .45; c.fillStyle = col;
+          c.beginPath(); c.moveTo(0, 0);
+          c.bezierCurveTo(sz * .6, -sz * .5, sz * 1.1, -sz * .1, sz * .55, sz * .5);
+          c.bezierCurveTo(sz * .2, sz * .75, -sz * .1, sz * .4, 0, 0);
+          c.fill();
+          if (s.part === 'leaf') { c.strokeStyle = 'rgba(0,0,0,.15)'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, 0); c.lineTo(sz * .5, sz * .35); c.stroke(); }
+          c.restore();
+        } else if (s.part === 'snow') {
+          const sz = 1.5 + r2() * 3.5;
+          c.globalAlpha = .35 + r2() * .5; c.fillStyle = col;
+          c.beginPath(); c.arc(x, y, sz, 0, 6.28); c.fill();
+        } else if (s.part === 'firefly') {
+          const sz = 1 + r2() * 2.5;
+          c.globalAlpha = .25 + r2() * .55;
+          const g = c.createRadialGradient(x, y, 0, x, y, sz * 4);
+          g.addColorStop(0, col); g.addColorStop(1, 'transparent');
+          c.fillStyle = g; c.beginPath(); c.arc(x, y, sz * 4, 0, 6.28); c.fill();
+          c.globalAlpha = .8; c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, sz * .6, 0, 6.28); c.fill();
+        }
+      }
+      c.globalAlpha = 1;
+      if (s.part === 'snow') {
+        const sg = c.createLinearGradient(0, H * .82, 0, H);
+        sg.addColorStop(0, 'transparent'); sg.addColorStop(1, 'rgba(255,255,255,.14)');
+        c.fillStyle = sg; c.fillRect(0, H * .82, W, H * .18);
+      }
+    }
+
     function drawBg(c, W, H, seed) {
       const m = MOODS[S.mood];
       const g = c.createLinearGradient(0, 0, W * .3, H); m.bg.forEach(s => g.addColorStop(s[0], s[1])); c.fillStyle = g; c.fillRect(0, 0, W, H);
@@ -1405,11 +1500,7 @@
         const rg = c.createRadialGradient(sx, sy, 0, sx, sy, sr); rg.addColorStop(0, m.sun.c0); rg.addColorStop(.6, m.sun.c1); rg.addColorStop(1, m.sun.c2);
         c.fillStyle = rg; c.beginPath(); c.arc(sx, sy, sr, 0, 6.28); c.fill();
       }
-      const C = ['#ffb7d5', '#ff9ec7', '#ffd3e4', '#ff8fb8']; const r2 = rng(42);
-      for (let i = 0; i < 34; i++) {
-        const x = r2() * W, y = r2() * H, s = 8 + r2() * 15, rot = r2() * 6.28; c.save(); c.translate(x, y); c.rotate(rot); c.globalAlpha = .3 + r2() * .45; c.fillStyle = C[r2() * 4 | 0];
-        c.beginPath(); c.moveTo(0, 0); c.bezierCurveTo(s * .6, -s * .5, s * 1.1, -s * .1, s * .55, s * .5); c.bezierCurveTo(s * .2, s * .75, -s * .1, s * .4, 0, 0); c.fill(); c.restore();
-      } c.globalAlpha = 1;
+      drawSeasonParticles(c, W, H);
     }
 
     function wrap(c, text, maxW, font) {
@@ -1423,7 +1514,6 @@
       const lines = wrap(c, text.toUpperCase(), W * .9, font);
       c.textAlign = 'center'; c.textBaseline = 'middle';
       const lh = fs * 1.04; const blockH = lines.length * lh;
-      // верх растёт вниз от верха; низ привязан к нижней кромке и растёт вверх (не вылезает за рамку)
       let y0 = alignY === 'top' ? H * .07 + lh / 2 : H * .95 - (lines.length - 1) * lh - lh / 2;
       if (opts.style === 'caption' || opts.style === 'karaoke') {
         const pad = lh * .4; const bw = W * .92, bh = blockH + pad * 2; const bx = (W - bw) / 2;
@@ -1631,6 +1721,15 @@
       });
     }
 
+    /* ═══════════ время года ═══════════ */
+    const seasonEl = $('#season');
+    if (seasonEl) {
+      Object.entries(SEASONS).forEach(([k, s]) => {
+        const b = document.createElement('button'); b.dataset.s = k; if (k === S.season) b.classList.add('on'); b.textContent = s.name;
+        b.onclick = () => { $$('#season button').forEach(x => x.classList.remove('on')); b.classList.add('on'); S.season = k; pop(); requestPaint(true); }; seasonEl.appendChild(b);
+      });
+    }
+
     /* ═══════════ стикеры ═══════════ */
     const stEl = $('#stickers');
     if (stEl) {
@@ -1655,7 +1754,7 @@
     buildSwatches('#tFill', TFILLS, S.tFill, c => { S.tFill = c; requestPaint(true); });
     buildSwatches('#tStroke', TSTROKES, S.tStroke, c => { S.tStroke = c; requestPaint(true); });
 
-    /* ═══════════ сегмент-контролы (через on — не падают на null) ═══════════ */
+    /* ═══════════ сегмент-контролы ═══════════ */
     on('#layout', 'click', e => {
       const b = e.target.closest('button'); if (!b) return; $$('#layout button').forEach(x => x.classList.remove('on')); b.classList.add('on');
       S.layout = b.dataset.l; syncLayoutUI(); pop(); requestPaint(true);
@@ -1696,19 +1795,26 @@
     on('#addYuki', 'click', () => addLayer({ type: 'yuki', face: FACES[Math.random() * FACES.length | 0].k, x: .62, y: .34, w: .3, h: .5, rot: 0 }));
     on('#addArrow', 'click', () => addLayer({ type: 'arrow', color: '#ffc85c', x: .55, y: .5, w: .22, h: .22, rot: 0 }));
     on('#addBox', 'click', () => addLayer({ type: 'box', color: '#ff4f6e', x: .3, y: .3, w: .4, h: .3, rot: 0 }));
+
     function renderLayers() {
-      const box = $('#layerList'); if (!box) return; box.innerHTML = ''; $('#mLayers').textContent = S.layers.length;
-      if (!S.layers.length) { box.innerHTML = '<div class="g-empty" style="grid-column:1/-1">слоёв нет — добавь текст, стрелку или стикер</div>'; return; }
-      S.layers.slice().reverse().forEach(L => {
-        const el = document.createElement('div'); el.className = 'layer' + (S.active === L.id ? ' on' : '');
-        const ic = L.type === 'text' ? '✎' : L.type === 'yuki' ? '😼' : L.type === 'sticker' ? L.emoji : L.type === 'arrow' ? '↘' : '▭';
-        const nm = L.type === 'text' ? L.text : L.type === 'yuki' ? ('Юки · ' + L.face) : L.type;
-        el.innerHTML = `<span class="ic">${ic}</span><span class="nm">${esc(nm)}</span><button class="x" title="удалить">✕</button>`;
-        el.onclick = (ev) => { if (ev.target.classList.contains('x')) return; S.active = L.id; renderLayers(); requestPaint(true); };
-        el.querySelector('.x').onclick = (ev) => { ev.stopPropagation(); S.layers = S.layers.filter(x => x.id !== L.id); if (S.active === L.id) S.active = null; renderLayers(); requestPaint(true); };
-        box.appendChild(el);
-      });
+      const box = $('#layerList');
+      if (!box) { renderEditor(); return; }
+      box.innerHTML = ''; $('#mLayers').textContent = S.layers.length;
+      if (!S.layers.length) {
+        box.innerHTML = '<div class="g-empty" style="grid-column:1/-1">слоёв нет — добавь текст, стрелку или стикер</div>';
+      } else {
+        S.layers.slice().reverse().forEach(L => {
+          const el = document.createElement('div'); el.className = 'layer' + (S.active === L.id ? ' on' : '');
+          const ic = L.type === 'text' ? '✎' : L.type === 'yuki' ? '😼' : L.type === 'sticker' ? L.emoji : L.type === 'arrow' ? '↘' : '▭';
+          const nm = L.type === 'text' ? L.text : L.type === 'yuki' ? ('Юки · ' + (FACES.find(f => f.k === L.face) || {}).n) : L.type;
+          el.innerHTML = `<span class="ic">${ic}</span><span class="nm">${esc(nm)}</span><button class="x" title="удалить">✕</button>`;
+          el.onclick = (ev) => { if (ev.target.classList.contains('x')) return; S.active = L.id; renderLayers(); requestPaint(true); };
+          el.querySelector('.x').onclick = (ev) => { ev.stopPropagation(); S.layers = S.layers.filter(x => x.id !== L.id); if (S.active === L.id) S.active = null; renderLayers(); requestPaint(true); };
+          box.appendChild(el);
+        });
+      }
       const hint = $('#layerHint'); if (hint) hint.style.display = S.active ? 'none' : '';
+      renderEditor();
     }
     function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
@@ -1716,16 +1822,83 @@
       const el = e.target.closest('.layer'); if (!el) return;
       const idx = [...$('#layerList').children].indexOf(el); const L = S.layers.slice().reverse()[idx];
       if (L && L.type === 'text') { const v = prompt('текст слоя:', L.text); if (v != null) { L.text = v; renderLayers(); requestPaint(true); } }
-      if (L && L.type === 'yuki') { const v = prompt('реакция (' + FACES.map(f => f.k).join(', ') + '):', L.face); if (v && yukiCache[v]) { L.face = v; requestPaint(true); } }
+      if (L && L.type === 'yuki') { const v = prompt('реакция (' + FACES.map(f => f.k).join(', ') + '):', L.face); if (v && yukiCache[v]) { L.face = v; renderLayers(); requestPaint(true); } }
+    });
+
+    /* ═══════════ редактор активного слоя ═══════════ */
+    function swatchRow(cur, colors, attr) {
+      return `<div class="swatches" data-attr="${attr}">` + colors.map(c =>
+        `<div class="swatch${c === cur ? ' on' : ''}" data-c="${c}" style="background:${c === 'none' ? 'repeating-linear-gradient(45deg,#2a2044 0 4px,#150f24 4px 8px)' : c}"></div>`
+      ).join('') + `</div>`;
+    }
+    function renderEditor() {
+      const body = $('#editBody'); if (!body) return;
+      const L = S.layers.find(l => l.id === S.active);
+      if (!L) { body.innerHTML = '<div class="cap">выбери слой на холсте или в списке</div>'; return; }
+      const tname = L.type === 'text' ? 'текст' : L.type === 'yuki' ? 'юки' : L.type === 'sticker' ? 'стикер' : L.type === 'arrow' ? 'стрелка' : 'рамка';
+      let html = `<div class="cap" style="margin-bottom:2px">тип: ${tname}</div>`;
+      if (L.type === 'text') {
+        html += `<div class="field"><span class="cap">текст</span><textarea id="edText" rows="2">${esc(L.text)}</textarea></div>`;
+        html += `<span class="cap">цвет</span>` + swatchRow(L.fill, TFILLS.map(x => x[0]), 'fill');
+        html += `<span class="cap">обводка</span>` + swatchRow(L.stroke, TSTROKES.map(x => x[0]), 'stroke');
+        html += `<span class="cap">размер</span><div class="seg c4" data-attr="size">` +
+          Object.entries(TEXT_H).map(([k, v]) => `<button data-z="${k}" class="${Math.abs(L.h - v) < .01 ? 'on' : ''}">${k}</button>`).join('') + `</div>`;
+      } else if (L.type === 'yuki') {
+        html += `<span class="cap">реакция</span><div class="seg c4" data-attr="face">` +
+          FACES.map(f => `<button data-f="${f.k}" class="${L.face === f.k ? 'on' : ''}">${f.n}</button>`).join('') + `</div>`;
+      } else if (L.type === 'sticker') {
+        html += `<span class="cap">эмодзи</span><div class="chips" data-attr="emoji">` +
+          STICKERS.map(e => `<button class="chip e${e === L.emoji ? ' on' : ''}" data-e="${e}">${e}</button>`).join('') + `</div>`;
+      } else if (L.type === 'arrow' || L.type === 'box') {
+        html += `<span class="cap">цвет</span>` + swatchRow(L.color, EDIT_COLORS, 'color');
+      }
+      html += `<div class="seg c2" style="margin-top:4px">
+        <button data-act="up">⬆ выше</button>
+        <button data-act="down">⬇ ниже</button>
+        <button data-act="dup">⧉ дублировать</button>
+        <button data-act="del">✕ удалить</button>
+      </div>`;
+      body.innerHTML = html;
+    }
+    on('#editCard', 'input', e => {
+      const L = S.layers.find(l => l.id === S.active); if (!L) return;
+      if (e.target.id === 'edText') { L.text = e.target.value; renderLayers(); requestPaint(true); }
+    });
+    on('#editCard', 'click', e => {
+      const L = S.layers.find(l => l.id === S.active); if (!L) return;
+      const sw = e.target.closest('.swatch');
+      if (sw) {
+        const attr = sw.closest('.swatches').dataset.attr; L[attr] = sw.dataset.c;
+        sw.closest('.swatches').querySelectorAll('.swatch').forEach(x => x.classList.remove('on')); sw.classList.add('on');
+        requestPaint(true); return;
+      }
+      const sz = e.target.closest('[data-attr="size"] button');
+      if (sz) { L.h = TEXT_H[sz.dataset.z]; sz.closest('.seg').querySelectorAll('button').forEach(x => x.classList.remove('on')); sz.classList.add('on'); requestPaint(true); return; }
+      const fb = e.target.closest('[data-attr="face"] button');
+      if (fb) { L.face = fb.dataset.f; fb.closest('.seg').querySelectorAll('button').forEach(x => x.classList.remove('on')); fb.classList.add('on'); requestPaint(true); return; }
+      const em = e.target.closest('[data-attr="emoji"] .chip');
+      if (em) { L.emoji = em.dataset.e; em.closest('.chips').querySelectorAll('.chip').forEach(x => x.classList.remove('on')); em.classList.add('on'); requestPaint(true); return; }
+      const act = e.target.closest('[data-act]');
+      if (act) {
+        const a = act.dataset.act; const idx = S.layers.findIndex(l => l.id === L.id);
+        if (a === 'del') { S.layers.splice(idx, 1); S.active = null; }
+        else if (a === 'dup') { const cp = { ...L, id: ++UID, x: Math.min(L.x + .05, 1), y: Math.min(L.y + .05, 1) }; S.layers.splice(idx + 1, 0, cp); S.active = cp.id; }
+        else if (a === 'up' && idx < S.layers.length - 1) { [S.layers[idx], S.layers[idx + 1]] = [S.layers[idx + 1], S.layers[idx]]; }
+        else if (a === 'down' && idx > 0) { [S.layers[idx], S.layers[idx - 1]] = [S.layers[idx - 1], S.layers[idx]]; }
+        renderLayers(); requestPaint(true); return;
+      }
     });
 
     /* ═══════════ действия ═══════════ */
     on('#clearLayers', 'click', () => { S.layers = []; S.active = null; renderLayers(); requestPaint(true); toast('🧹 слои очищены'); });
     on('#randomize', 'click', () => {
-      S.mood = Object.keys(MOODS)[Math.random() * 4 | 0]; S.face = FACES[Math.random() * FACES.length | 0].k;
+      S.mood = Object.keys(MOODS)[Math.random() * 4 | 0];
+      S.season = Object.keys(SEASONS)[Math.random() * 4 | 0];
+      S.face = FACES[Math.random() * FACES.length | 0].k;
       $$('#mood button').forEach(x => x.classList.toggle('on', x.dataset.m === S.mood));
+      $$('#season button').forEach(x => x.classList.toggle('on', x.dataset.s === S.season));
       $$('.face-btn').forEach(x => { const onn = x.dataset.f === S.face; x.classList.toggle('on', onn); x.setAttribute('aria-pressed', onn); });
-      $('#mFace').textContent = S.face;
+      $('#mFace').textContent = (FACES.find(f => f.k === S.face) || {}).n || S.face;
       pop(); requestPaint(true); toast('🎲 рандом-вайб');
     });
 
